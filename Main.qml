@@ -72,18 +72,10 @@ ApplicationWindow {
     header: ToolBar {
         RowLayout {
             anchors.fill: parent
-//            ToolButton {
-//                text: qsTr("‹")
-//                font.bold: true
-//                onClicked: console.log("< clicked")
-//            }
             Label {
                 text: "Boomarks"
                 color: "#FFFFFF"
                 font.bold: true
-//                elide: Label.ElideRight
-//                horizontalAlignment: Qt.AlignHCenter
-//                verticalAlignment: Qt.AlignVCenter
                 Layout.fillWidth: true
                 Layout.alignment: Qt.AlignLeft
                 Layout.margins: 5
@@ -235,7 +227,6 @@ ApplicationWindow {
                             wrapMode: Text.WordWrap
                             padding: 2
                         }
-
                     }
 
                     MouseArea {
