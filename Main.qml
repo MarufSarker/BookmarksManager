@@ -93,16 +93,16 @@ ApplicationWindow {
                 }
             }
             ToolButton {
-                text: qsTr("U")
-                font.bold: true
-                visible: listContainersStack.length > 0
-                onClicked: upListView()
-            }
-            ToolButton {
                 text: qsTr("E")
                 font.bold: true
                 visible: listSelections.length === 1
                 onClicked: {}
+            }
+            ToolButton {
+                text: qsTr("U")
+                font.bold: true
+                visible: listContainersStack.length > 0
+                onClicked: upListView()
             }
             ToolButton {
                 text: qsTr("S")
@@ -112,11 +112,6 @@ ApplicationWindow {
                     if (footerToolbar.visible)
                         searchField.forceActiveFocus()
                 }
-            }
-            ToolButton {
-                text: qsTr("⋮")
-                font.bold: true
-                onClicked: console.log(": clicked")
             }
         }
     }
