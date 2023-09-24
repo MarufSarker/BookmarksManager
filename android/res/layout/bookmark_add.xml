@@ -1,0 +1,105 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context=".BookmarkAdd"
+    android:orientation="vertical">
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_margin="5dp"
+        android:textAlignment="center"
+        android:text="Add Bookmark"/>
+
+    <TextView
+        android:id="@+id/warning"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:padding="2dp"
+        android:textColor="#FF0000"
+        android:textAlignment="center"/>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_margin="5dp"
+            android:textAlignment="center"
+            android:text="Title"
+            android:layout_weight="0.25"/>
+
+        <EditText
+            android:id="@+id/titleXXX"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_margin="5dp"
+            android:textAlignment="center"
+            android:inputType="textMultiLine"
+            android:layout_weight="0.75"
+            android:hint="Title"/>
+
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_margin="5dp"
+            android:textAlignment="center"
+            android:text="URL"
+            android:layout_weight="0.25"/>
+
+        <EditText
+            android:id="@+id/urlXXX"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_margin="5dp"
+            android:textAlignment="center"
+            android:inputType="textMultiLine"
+            android:layout_weight="0.75"
+            android:hint="URL"/>
+
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:padding="5dp"
+        style="?android:attr/buttonBarStyle">
+
+        <Button
+            android:id="@+id/addXXX"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:padding="1dp"
+            android:textAlignment="center"
+            android:layout_weight="0.5"
+            android:text="Add"
+            style="?android:attr/buttonBarButtonStyle"/>
+
+        <Button
+            android:id="@+id/cancel"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:padding="1dp"
+            android:textAlignment="center"
+            android:layout_weight="0.5"
+            android:text="Cancel"
+            style="?android:attr/buttonBarButtonStyle"/>
+
+    </LinearLayout>
+
+</LinearLayout>
