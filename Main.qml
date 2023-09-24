@@ -25,18 +25,28 @@ ApplicationWindow {
     }
 
     function isSelected(modelIndex) {
-        return listSelections.indexOf(model.index) >= 0;
+        return listSelections.indexOf(modelIndex) >= 0;
+    }
+
+    function clearContainersStack() {
+        while (listContainersStack.length > 0)
+            listContainersStack.pop()
+    }
+
+    function clearSelections() {
+        while (listSelections.length > 0)
+            listSelections.pop()
     }
 
     function resetListView() {
-        while (listContainersStack.length > 0)
-            listContainersStack.pop()
+        clearContainersStack()
         bookmarkListModel.selectFromContainerIntoModel("0")
     }
 
     function upListView() {
         if (listContainersStack.length <= 0)
             return
+        clearSelections()
         bookmarkListModel.selectFromContainerIntoModel(listContainersStack.pop())
     }
 
@@ -53,6 +63,10 @@ ApplicationWindow {
         } else {
             loadListView(modelType, modelContainer, modelIdentifier)
         }
+    }
+
+    function searchIntoListView(text) {
+        bookmarkListModel.selectIntoModel(text)
     }
 
     header: ToolBar {
@@ -75,27 +89,19 @@ ApplicationWindow {
                 Layout.margins: 5
                 MouseArea {
                     anchors.fill: parent
-                    onClicked: {
-                        while (bookmarksList._containersStack.length > 0)
-                            bookmarksList._containersStack.pop()
-                        bookmarkListModel.selectFromContainerIntoModel("0")
-                    }
+                    onClicked: resetListView()
                 }
             }
             ToolButton {
                 text: qsTr("U")
                 font.bold: true
-                visible: bookmarksList._containersStack.length > 0
-                onClicked: {
-                    if (bookmarksList._containersStack.length <= 0)
-                        return
-                    bookmarkListModel.selectFromContainerIntoModel(bookmarksList._containersStack.pop())
-                }
+                visible: listContainersStack.length > 0
+                onClicked: upListView()
             }
             ToolButton {
                 text: qsTr("E")
                 font.bold: true
-                visible: bookmarksList._selections.length === 1
+                visible: listSelections.length === 1
                 onClicked: {}
             }
             ToolButton {
@@ -128,9 +134,7 @@ ApplicationWindow {
                 Layout.alignment: Qt.AlignRight
                 Layout.margins: 2
                 onClicked: {
-                    while (bookmarksList._containersStack.length > 0)
-                        bookmarksList._containersStack.pop()
-                    bookmarkListModel.selectFromContainerIntoModel("0")
+                    resetListView()
                     footerToolbar.visible = !footerToolbar.visible
                     if (footerToolbar.visible)
                         searchField.forceActiveFocus()
@@ -159,7 +163,7 @@ ApplicationWindow {
                 text: qsTr("Search")
                 Layout.alignment: Qt.AlignRight
                 Layout.margins: 2
-                onClicked: bookmarkListModel.selectIntoModel(searchField.text)
+                onClicked: searchIntoListView(searchField.text)
             }
         }
     }
@@ -203,8 +207,8 @@ ApplicationWindow {
                     MouseArea {
                         anchors.fill: parent
                         onClicked: {
-                            bookmarksList.addToSelections(model.index)
-                            __active = (bookmarksList._selections.indexOf(model.index) >= 0)
+                            addToSelections(model.index)
+                            __active = isSelected(model.index)
                         }
                     }
                 }
@@ -244,13 +248,8 @@ ApplicationWindow {
                         implicitWidth: titleId.width + urlId.width
                         implicitHeight: titleId.height + urlId.height
                         onClicked: {
-                            if (bookmarksList._selections.length > 0) {
-                                bookmarksList.addToSelections(model.index)
-                                __active = (bookmarksList._selections.indexOf(model.index) >= 0)
-                            } else if (model.type === "CONTAINER") {
-                                bookmarksList._containersStack.push(container)
-                                bookmarkListModel.selectFromContainerIntoModel(identifier)
-                            }
+                            selectOrLoadListView(model.index, model.type, model.container, model.identifier)
+                            __active = isSelected(model.index)
                         }
                     }
                 }
@@ -268,13 +267,5 @@ ApplicationWindow {
         delegate: listDelegate
         clip: true
         spacing: 5
-
-        function addToSelections(modelIndex) {
-            let idx = bookmarksList._selections.indexOf(modelIndex)
-            if (idx >= 0)
-                bookmarksList._selections.splice(idx, 1)
-            else
-                bookmarksList._selections.push(modelIndex)
-        }
     }
 }
