@@ -24,9 +24,9 @@ static int fromJavaOne(JNIEnv *env, jobject thiz, jint x)
 
 int main(int argc, char *argv[])
 {
-    QDirIterator it(":", QDirIterator::Subdirectories);
-    while (it.hasNext())
-        qDebug() << it.next();
+//    QDirIterator it(":", QDirIterator::Subdirectories);
+//    while (it.hasNext())
+//        qDebug() << it.next();
 
 
     QGuiApplication app(argc, argv);
@@ -45,7 +45,7 @@ int main(int argc, char *argv[])
     QObject::connect(&engine, &QQmlApplicationEngine::objectCreationFailed,
         &app, []() { QCoreApplication::exit(-1); },
         Qt::QueuedConnection);
-    qmlRegisterType<Bookmark>("Bookmark", 1, 0, "Bookmark");
+//     qmlRegisterType<Bookmark>("Bookmark", 1, 0, "Bookmark");
     engine.rootContext()->setContextProperty("bookmarkListModel", &model);
     engine.loadFromModule("BookmarksManager", "Main");
 

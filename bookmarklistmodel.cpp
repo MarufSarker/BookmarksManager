@@ -178,7 +178,7 @@ void BookmarkListModel::selectIntoModel(QString const& _query)
         return;
 
     QSqlQuery query(mDb);
-    query.prepare("SELECT * FROM mm_bookmarks WHERE [url] LIKE (:url) OR [title] LIKE (:title)");
+    query.prepare("SELECT * FROM mm_bookmarks WHERE [url] LIKE (:url) OR [title] LIKE (:title) ORDER BY [title]");
     query.bindValue(":url", "%" + _query + "%");
     query.bindValue(":title", "%" + _query + "%");
     queryDb(this, query, mData);
@@ -216,17 +216,20 @@ void BookmarkListModel::selectFromContainerIntoModel(QString const& _query)
     endInsertRows();
 }
 
-bool BookmarkListModel::insertBookmarks(QList<Bookmark> data)
+bool BookmarkListModel::insertBookmarks(QList<QVariantMap> const& _data)
 {
     if (!mDb.isOpen())
         return false;
+
+    QList<Bookmark*> data;
+    convert(this, data, _data);
 
     QString sql = "INSERT INTO mm_bookmarks ([container], [type], [url], [title], [note]) VALUES ";
     QMap<QString, QString> bindings {};
 
     for (size_t i = 0; i < data.size(); ++i)
     {
-        Bookmark const* bm = &data.at(i);
+        auto bm = data.at(i);
 
         if (bm->container.isEmpty())
             bm->container.toStdString() = mm::bookmarks::sql::bookmarks::helpers::defaults::container;
@@ -275,38 +278,111 @@ bool BookmarkListModel::insertBookmarks(QList<Bookmark> data)
     return true;
 }
 
-bool BookmarkListModel::updateBookmarks(QList<Bookmark> data)
+//void BookmarkListModel::test(QVariantList o)
+//{
+//    qDebug() << __LINE__ << o;
+//}
+//void BookmarkListModel::test(QVariantMap o)
+//{
+//    qDebug() << __LINE__ << o;
+//}
+//void BookmarkListModel::test(QList<QVariantMap>const& o)
+//{
+//    qDebug() << __LINE__ << o;
+//    for (auto v : o)
+//    {
+//        for (auto [key, value] : v.asKeyValueRange())
+//        {
+//            qDebug() << __LINE__ << key << value.toString();
+//        }
+//    }
+//}
+//void BookmarkListModel::test(Bookmark o)
+//{
+//    qDebug() << __LINE__ << o;
+//}
+
+bool BookmarkListModel::updateBookmarks(QList<QVariantMap> const& _data)
 {
+//    qDebug() << __LINE__ << _data[0].keys().isEmpty();
     if (!mDb.isOpen())
         return false;
-    if (data.isEmpty())
+    if (_data.isEmpty())
         return true;
+
+    QList<Bookmark*> data;
+    convert(this, data, _data);
 
     for (size_t i = 0; i < data.size(); ++i)
     {
-        auto* bm = &data.at(i);
+        auto bm = data.at(i);
+
+        if (bm->identifier.isEmpty())
+            continue;
+
+        QList<QString> items;
+        QList<QPair<QString, QString>> binds;
+
+        binds.append({":identifier", bm->identifier});
+
+        if (!bm->container.isEmpty())
+        {
+            items.append("[container] = :container");
+            binds.append({":container", bm->container});
+        }
+        if (!bm->url.isEmpty())
+        {
+            items.append("[url] = :url");
+            binds.append({":url", bm->url});
+        }
+        if (!bm->title.isEmpty())
+        {
+            items.append("[title] = :title");
+            binds.append({":title", bm->title});
+        }
+        if (!bm->note.isEmpty())
+        {
+            items.append("[note] = :note");
+            binds.append({":note", bm->note});
+        }
 
         QString sql = "UPDATE mm_bookmarks SET";
-        sql += " [container] = :container";
-        sql += ", [url] = :url";
-        sql += ", [title] = :title";
-        sql += ", [note] = :note";
+
+        for (int i = 0; i < items.size(); ++i)
+            sql += (i <= 0 ? " " : ", ") + items.at(i);
+
+        // sql += " [container] = :container";
+        // sql += ", [url] = :url";
+        // sql += ", [title] = :title";
+        // sql += ", [note] = :note";
+
         sql += " WHERE [identifier] == :identifier;";
+//        qDebug() << __LINE__ << sql;
+        QSqlQuery query(mDb);
+        query.prepare(sql);
+//        qDebug() << __LINE__ << query.lastError();
 
-        QSqlQuery query(sql, mDb);
+        for (auto& i : binds)
+            query.bindValue(i.first, i.second);
 
-        query.bindValue(":container", bm->container);
-        query.bindValue(":url", bm->url);
-        query.bindValue(":title", bm->title);
-        query.bindValue(":note", bm->note);
-        query.bindValue(":identifier", bm->identifier);
+//        qDebug() << __LINE__ << items << binds;
+
+        // query.bindValue(":container", bm->container);
+        // query.bindValue(":url", bm->url);
+        // query.bindValue(":title", bm->title);
+        // query.bindValue(":note", bm->note);
+        // query.bindValue(":identifier", bm->identifier);
 
         if (!query.exec())
         {
             qDebug() << query.lastError();
+//            qDebug() << "Query:" << query.executedQuery();
             query.finish();
             return false;
         }
+
+//        qDebug() << "Query:" << query.executedQuery();
+//        qDebug() << "Bounds:" << query.boundValues();
 
         query.finish();
 
@@ -317,7 +393,7 @@ bool BookmarkListModel::updateBookmarks(QList<Bookmark> data)
     return false;
 }
 
-bool BookmarkListModel::deleteBookmarks(QList<QString> data)
+bool BookmarkListModel::deleteBookmarks(QList<QString> const& data)
 {
     if (!mDb.isOpen())
         return false;
@@ -339,7 +415,8 @@ bool BookmarkListModel::deleteBookmarks(QList<QString> data)
         bindings[":identifier" + _i] = id;
     }
 
-    QSqlQuery query(sql, mDb);
+    QSqlQuery query(mDb);
+    query.prepare(sql);
 
     for (auto [key, value] : bindings.asKeyValueRange())
         query.bindValue(key, value);
@@ -405,13 +482,15 @@ bool BookmarkListModel::importFrom(QString const& from, QString const& path)
         // cleanup
         for (auto const& v : cl)
         {
-            QSqlQuery query(v, db);
+            QSqlQuery query(db);
+            query.prepare(v);
             if (!query.exec())
                 qDebug() << query.lastError();
             query.finish();
         }
         // detach
-        QSqlQuery query(dt, db);
+        QSqlQuery query(db);
+        query.prepare(dt);
         if (!query.exec())
             qDebug() << query.lastError();
         query.finish();
@@ -426,14 +505,16 @@ bool BookmarkListModel::importFrom(QString const& from, QString const& path)
         _att.replace("\"", "\\\"");
         _att.replace(";", "\\;");
 
-        QSqlQuery query(_att, db);
+        QSqlQuery query(db);
+        query.prepare(_att);
         if (!query.exec())
             qDebug() << query.lastError();
         query.finish();
 
         for (auto const& v : prep)
         {
-            QSqlQuery query(v, db);
+            QSqlQuery query(db);
+            query.prepare(v);
             if (!query.exec())
                 qDebug() << query.lastError();
             query.finish();
@@ -442,7 +523,8 @@ bool BookmarkListModel::importFrom(QString const& from, QString const& path)
         // process
         for (auto const& v : proc)
         {
-            QSqlQuery query(v, db);
+            QSqlQuery query(db);
+            query.prepare(v);
             if (!query.exec())
                 qDebug() << query.lastError();
             query.finish();
@@ -460,6 +542,40 @@ bool BookmarkListModel::vacuum()
 {
     if (!mDb.isOpen())
         return false;
-    QSqlQuery query("VACUUM;", mDb);
+    QSqlQuery query(mDb);
+    query.prepare("VACUUM;");
     return query.exec();
+}
+
+void BookmarkListModel::convert(QObject* parent, QList<Bookmark*>& result, QList<QVariantMap> const& other) const
+{
+//    qDebug() << __LINE__;
+    for (auto v : other)
+    {
+//        qDebug() << __LINE__ << v.keys().isEmpty();
+        Bookmark* bm = new Bookmark(parent);
+        for (auto [key, value] : v.asKeyValueRange())
+        {
+//            qDebug() << __LINE__ << key << value;
+            QString _v = value.toString();
+            if (key == "identifier")
+                bm->identifier = _v;
+            else if (key == "container")
+                bm->container = _v;
+            else if (key == "type")
+                bm->type = _v;
+            else if (key == "url")
+                bm->url = _v;
+            else if (key == "title")
+                bm->title = _v;
+            else if (key == "note")
+                bm->note = _v;
+            else if (key == "created")
+                bm->created = _v;
+            else if (key == "modified")
+                bm->modified = _v;
+        }
+        result.append(bm);
+    }
+//    qDebug() << __LINE__;
 }

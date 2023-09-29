@@ -3,25 +3,30 @@ import QtQuick.Window
 import QtQuick.Controls
 import QtQuick.Layouts
 
-import Bookmark
+//import Bookmark
 
 ApplicationWindow {
     width: 640
     height: 480
     visible: true
     title: qsTr("Bookmarks Manager")
-    minimumHeight: 300
-    minimumWidth: 300
+    minimumHeight: 50
+    minimumWidth: 50
 
     property list<int> listSelections: []
     property list<string> listContainersStack: []
+    property var listCurrentModel: null
+    property var listEditingModel: null
 
-    function addToSelections(modelIndex) {
-        let idx = listSelections.indexOf(modelIndex)
+    function addToSelections(model) {
+        let idx = listSelections.indexOf(model.index)
         if (idx >= 0)
             listSelections.splice(idx, 1)
         else
-            listSelections.push(modelIndex)
+        {
+            listSelections.push(model.index)
+            listCurrentModel = model
+        }
     }
 
     function isSelected(modelIndex) {
@@ -43,6 +48,12 @@ ApplicationWindow {
         bookmarkListModel.selectFromContainerIntoModel("0")
     }
 
+    function refreshListView(model) {
+        clearSelections()
+        if (model.container)
+            bookmarkListModel.selectFromContainerIntoModel(model.container)
+    }
+
     function upListView() {
         if (listContainersStack.length <= 0)
             return
@@ -50,18 +61,18 @@ ApplicationWindow {
         bookmarkListModel.selectFromContainerIntoModel(listContainersStack.pop())
     }
 
-    function loadListView(modelType, modelContainer, modelIdentifier) {
-        if (modelType === "CONTAINER") {
-            listContainersStack.push(modelContainer)
-            bookmarkListModel.selectFromContainerIntoModel(modelIdentifier)
+    function loadListView(model) {
+        if (model.type === "CONTAINER") {
+            listContainersStack.push(model.container)
+            bookmarkListModel.selectFromContainerIntoModel(model.identifier)
         }
     }
 
-    function selectOrLoadListView(modelIndex, modelType, modelContainer, modelIdentifier) {
+    function selectOrLoadListView(model) {
         if (listSelections.length > 0) {
-            addToSelections(modelIndex)
+            addToSelections(model)
         } else {
-            loadListView(modelType, modelContainer, modelIdentifier)
+            loadListView(model)
         }
     }
 
@@ -88,13 +99,28 @@ ApplicationWindow {
                 text: qsTr("E")
                 font.bold: true
                 visible: listSelections.length === 1
-                onClicked: {}
+                onClicked: {
+                    if (listSelections.length !== 1)
+                        return
+                    listEditingModel = listCurrentModel
+                    stack.push(editBookmarkComponent)
+                    // editBookmarkView._model = listCurrentModel
+                    // bookmarksList.visible = false
+                    // editBookmarkView.visible = true
+                }
             }
             ToolButton {
                 text: qsTr("U")
                 font.bold: true
                 visible: listContainersStack.length > 0
                 onClicked: upListView()
+            }
+            ToolButton {
+                text: qsTr("+")
+                font.bold: true
+                onClicked: {
+                    // TODO
+                }
             }
             ToolButton {
                 text: qsTr("S")
@@ -194,7 +220,7 @@ ApplicationWindow {
                     MouseArea {
                         anchors.fill: parent
                         onClicked: {
-                            addToSelections(model.index)
+                            addToSelections(model)
                             __active = isSelected(model.index)
                         }
                     }
@@ -234,8 +260,29 @@ ApplicationWindow {
                         implicitWidth: titleId.width + urlId.width
                         implicitHeight: titleId.height + urlId.height
                         onClicked: {
-                            selectOrLoadListView(model.index, model.type, model.container, model.identifier)
+                            selectOrLoadListView(model)
                             __active = isSelected(model.index)
+                        }
+                    }
+                }
+
+                ToolButton {
+                    text: qsTr(":")
+                    font.bold: true
+                    Layout.rightMargin: 5
+                    onClicked: {
+                        bookmarkOptions.open()
+                    }
+
+                    Menu {
+                        id: bookmarkOptions
+                        closePolicy: Menu.CloseOnPressOutside | Menu.CloseOnEscape
+                        MenuItem {
+                            text: qsTr("Edit")
+                            onClicked: {
+                                listEditingModel = model
+                                stack.push(editBookmarkComponent)
+                            }
                         }
                     }
                 }
@@ -243,15 +290,126 @@ ApplicationWindow {
         }
     }
 
-    ListView {
-        property list<int> _selections: []
-        property list<string> _containersStack: []
+    Component {
+        id: bookmarksListComponent
 
-        id: bookmarksList
+        ListView {
+            id: bookmarksList
+            anchors.fill: parent
+            model: bookmarkListModel
+            delegate: listDelegate
+            clip: true
+            spacing: 5
+            visible: true
+            ScrollBar.vertical: ScrollBar {}
+        }
+    }
+
+    Component {
+        id: editBookmarkComponent
+
+        ScrollView {
+            Rectangle {
+                anchors.fill: parent
+                color: "transparent"
+                ColumnLayout {
+                    anchors.fill: parent
+                    RowLayout {
+                        Layout.fillWidth: true
+                        Button {
+                            id: editOk
+                            text: qsTr("Edit")
+                            Layout.fillWidth: true
+                            Layout.margins: 5
+                            onClicked: {
+                                editInfo.text = ""
+                                let bm = {
+                                    "identifier": listEditingModel.identifier,
+                                    "url": editListView.model.get(1).value,
+                                    "title": editListView.model.get(0).value,
+                                    "note": editListView.model.get(2).value,
+                                }
+                                let res = bookmarkListModel.updateBookmarks([bm])
+                                if (res) {
+                                    editInfo.text = "Updated"
+                                    refreshListView(listEditingModel)
+                                    stack.pop()
+                                } else
+                                    editInfo.text = "Error Updating"
+
+//                                console.log(res)
+//                                console.log(res, bm.identifier, bm.url, bm.title, bm.note)
+
+                            }
+                        }
+                        Button {
+                            id: editCancel
+                            text: qsTr("Close")
+                            Layout.fillWidth: true
+                            Layout.margins: 5
+                            onClicked: stack.pop()
+                        }
+                    }
+                    Text {
+                        id: editInfo
+                        text: ""
+                        visible: true
+                        color: "#FFFFFF"
+                        font.bold: true
+                        wrapMode: Qt.TextWrapAnywhere
+                        Layout.fillWidth: true
+                        Layout.margins: 3
+                        Layout.alignment: Qt.AlignCenter
+                    }
+                    ListView {
+                        id: editListView
+                        Layout.fillWidth: true
+                        Layout.fillHeight: true
+                        clip: true
+                        spacing: 5
+                        model: ListModel {}
+                        Component.onCompleted: {
+                            model.append({"_id": "titleId", "name": "Title", "value": listEditingModel ? listEditingModel.title : ""})
+                            model.append({"_id": "urlId", "name": "URL", "value": listEditingModel ? listEditingModel.url : ""})
+                            model.append({"_id": "noteId", "name": "Note", "value": listEditingModel ? listEditingModel.note : ""})
+                        }
+                        delegate: Component {
+                            ColumnLayout {
+                                width: parent.width
+                                Label {
+                                    text: name
+                                    color: "#B0B0B0"
+                                    font.italic: true
+                                    Layout.margins: 0
+                                    Layout.leftMargin: 2
+                                    Layout.rightMargin: 2
+                                }
+                                TextEdit {
+                                    id: _id
+                                    text: value
+                                    color: "#FFFFFF"
+                                    font.bold: true
+                                    readOnly: false
+                                    selectByMouse: true
+                                    wrapMode: Text.WrapAtWordBoundaryOrAnywhere
+                                    Layout.fillWidth: true
+                                    Layout.margins: 0
+                                    Layout.leftMargin: 5
+                                    Layout.rightMargin: 5
+                                    Layout.bottomMargin: 2
+                                    onTextChanged: value = text
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    StackView {
+        id: stack
         anchors.fill: parent
-        model: bookmarkListModel
-        delegate: listDelegate
-        clip: true
-        spacing: 5
+        initialItem: bookmarksListComponent
     }
 }

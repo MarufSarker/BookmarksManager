@@ -37,9 +37,14 @@ public slots:
     void selectIntoModel(QString const& query);
     void selectFromContainerIntoModel(QString const& query);
 
-    bool insertBookmarks(QList<Bookmark> data);
-    bool updateBookmarks(QList<Bookmark> data);
-    bool deleteBookmarks(QList<QString> data);
+//    void test(QVariantList);
+//    void test(QVariantMap);
+//    void test(QList<QVariantMap>const&);
+//    void test(Bookmark);
+
+    bool insertBookmarks(QList<QVariantMap> const& data);
+    bool updateBookmarks(QList<QVariantMap> const& data);
+    bool deleteBookmarks(QList<QString> const& data);
 
     bool importFrom(QString const& from, QString const& path);
     bool vacuum();
@@ -50,7 +55,7 @@ private:
     QSqlDatabase mDb;
 
 private:
-
+    void convert(QObject* parent, QList<Bookmark*>& result, QList<QVariantMap> const& other) const;
 };
 
 #endif // BOOKMARKLISTMODEL_H
