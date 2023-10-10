@@ -13,6 +13,71 @@ ApplicationWindow {
     minimumHeight: 50
     minimumWidth: 50
 
+
+//    property list<string> containersStack: []
+//    property list<int> selectionsStack: []
+//    property var currentModel: null
+//    property var editingModel: null
+
+//    function goIntoModel(req) {
+//        if (!req)
+//            return
+//        if (req === "0") {
+//            containersStack.push("0")
+//            bookmarkListModel.selectFromContainerIntoModel("0")
+//            return
+//        }
+//        if (!('type' in req && 'container' in req && 'identifier' in req))
+//            return
+//        if (req.type && req.type === "CONTAINER" && req.container && req.identifier) {
+//            containersStack.push(req.container)
+//            bookmarkListModel.selectFromContainerIntoModel(req.identifier)
+//        }
+//    }
+//    function goBackFromCurrent() {
+//        if (goBackable())
+//            bookmarkListModel.selectFromContainerIntoModel(containersStack.pop())
+//    }
+//    function goBackable() {
+//        return containersStack.length > 0
+//    }
+//    function goHome() {
+//        clearList(containersStack)
+//        goIntoModel("0")
+//    }
+//    function goRefresh(req) {
+//        clearList(selectionsStack)
+//    }
+//    function selectToggle(req) {
+//        if (!req)
+//            return
+//        let id = ""
+//        if (typeof(req) === string)
+//            id = req
+//        else if ("index" in req && req.index)
+//            id = req.index
+//        let idx = selectionsStack.indexOf(id)
+//        if (idx >= 0)
+//            selectionsStack.splice(idx, 1)
+//        else
+//        {
+//            selectionsStack.push(id)
+//            currentModel = req
+//        }
+//    }
+//    function selectSelected(req) {
+//        return selectionsStack.indexOf(req) >= 0
+//    }
+//    function clearList(_list) {
+//        while (_list.length > 0)
+//            _list.pop()
+//    }
+
+//    for( var i = 0; i < listModelID.rowCount(); i++ ) {
+//        console.log( listModelID.get(i).<yourPropertyName> );
+//    }
+
+
     property list<int> listSelections: []
     property list<string> listContainersStack: []
     property var listCurrentModel: null
@@ -61,6 +126,7 @@ ApplicationWindow {
         bookmarkListModel.selectFromContainerIntoModel(listContainersStack.pop())
     }
 
+    //
     function loadListView(model) {
         if (model.type === "CONTAINER") {
             listContainersStack.push(model.container)
@@ -78,6 +144,15 @@ ApplicationWindow {
 
     function searchIntoListView(text) {
         bookmarkListModel.selectIntoModel(text)
+    }
+
+    function loadInitialModel() {
+        listContainersStack.push("0")
+        bookmarkListModel.selectFromContainerIntoModel("0")
+    }
+
+    Component.onCompleted: {
+        loadInitialModel()
     }
 
     header: ToolBar {
@@ -119,7 +194,7 @@ ApplicationWindow {
                 text: qsTr("+")
                 font.bold: true
                 onClicked: {
-                    // TODO
+                    stack.push(addBookmarkComponent)
                 }
             }
             ToolButton {
@@ -295,7 +370,7 @@ ApplicationWindow {
 
         ListView {
             id: bookmarksList
-            anchors.fill: parent
+            // anchors.fill: parent
             model: bookmarkListModel
             delegate: listDelegate
             clip: true
@@ -402,6 +477,98 @@ ApplicationWindow {
                             }
                         }
                     }
+                }
+            }
+        }
+    }
+
+    component LabeledTextEdit: ColumnLayout {
+        property alias label: _label.text
+        property alias value: _text.text
+
+        Layout.fillWidth: true
+
+        Label {
+            id: _label
+            text: "Label"
+            color: "#B0B0B0"
+            font.italic: true
+            Layout.fillWidth: true
+            Layout.margins: 0
+            Layout.leftMargin: 2
+            Layout.rightMargin: 2
+        }
+        TextEdit {
+            id: _text
+            text: ""
+            color: "#FFFFFF"
+            font.bold: true
+            readOnly: false
+            selectByMouse: true
+            wrapMode: Text.WrapAtWordBoundaryOrAnywhere
+            Layout.fillWidth: true
+            Layout.margins: 0
+            Layout.leftMargin: 5
+            Layout.rightMargin: 5
+            Layout.bottomMargin: 2
+            onTextChanged: value = text
+        }
+    }
+
+    Component {
+        id: addBookmarkComponent
+
+        ScrollView {
+            contentWidth: parent.width
+            ColumnLayout {
+                width: parent.width
+                RowLayout {
+                    width: parent.width
+                    Button {
+                        id: addOk
+                        text: qsTr("Add")
+                        Layout.fillWidth: true
+                        Layout.margins: 5
+                        onClicked: {
+                            console.log("Add Clicked")
+                            console.log(listContainersStack)
+//                            console.log(Object.getOwnPropertyNames(bookmarkListModel))
+                            console.log(bookmarkListModel[0])
+                        }
+                    }
+                    Button {
+                        id: addCancel
+                        text: qsTr("Close")
+                        Layout.fillWidth: true
+                        Layout.margins: 5
+                        onClicked: stack.pop()
+                    }
+                }
+                Text {
+                    id: addInfo
+                    text: ""
+                    color: "#FFFFFF"
+                    font.bold: true
+                    Layout.margins: 5
+                    Layout.fillWidth: true
+                    horizontalAlignment: Qt.AlignHCenter
+                    verticalAlignment: Qt.AlignVCenter
+                    wrapMode: Qt.TextWrapAnywhere
+                }
+                LabeledTextEdit {
+                    id: addViewTitle
+                    label: "Title"
+                    Layout.fillWidth: true
+                }
+                LabeledTextEdit {
+                    id: addViewUrl
+                    label: "URL"
+                    Layout.fillWidth: true
+                }
+                LabeledTextEdit {
+                    id: addViewNote
+                    label: "Note"
+                    Layout.fillWidth: true
                 }
             }
         }

@@ -47,11 +47,13 @@ int main(int argc, char *argv[])
         Qt::QueuedConnection);
 //     qmlRegisterType<Bookmark>("Bookmark", 1, 0, "Bookmark");
     engine.rootContext()->setContextProperty("bookmarkListModel", &model);
-    engine.loadFromModule("BookmarksManager", "Main");
+    // engine.loadFromModule("BookmarksManager", "Main");
+    engine.rootContext()->setContextProperty("listModel", &model);
+    engine.loadFromModule("BookmarksManager", "Test");
 
     // TODO : REMOVE
 //    model.search("0", "container", "");
-    model.selectFromContainerIntoModel("0");
+    //model.selectFromContainerIntoModel("0");
 
     return app.exec();
 }

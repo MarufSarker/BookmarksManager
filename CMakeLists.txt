@@ -30,6 +30,7 @@ qt_add_qml_module(appBookmarksManager
     RESOURCES images/typeContainer.png images/typeURL.png
     SOURCES sql.hh
     SOURCES bookmark.h bookmark.cpp
+    QML_FILES Test.qml
 )
 
 set(QT_ANDROID_BUILD_ALL_ABIS TRUE CACHE BOOL "" FORCE)

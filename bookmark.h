@@ -27,6 +27,10 @@ public:
     QString note       = {};
     QString created    = {};
     QString modified   = {};
+    bool    selected   = false;
+    bool    cut        = false;
+
+    QVariantMap asVariantMap() const;
 
 signals:
 

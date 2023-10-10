@@ -1,6 +1,7 @@
 #include "bookmarklistmodel.h"
 #include "sql.hh"
 #include <QtSql>
+#include <QTime>
 
 BookmarkListModel::BookmarkListModel(QObject *parent)
     : QAbstractListModel{parent}
@@ -67,6 +68,10 @@ QVariant BookmarkListModel::data(QModelIndex const& index, int role) const
         return QVariant(mData.at(index.row())->created);
     case modifiedRole:
         return QVariant(mData.at(index.row())->modified);
+    case selectedRole:
+        return QVariant(mData.at(index.row())->selected);
+    case cutRole:
+        return QVariant(mData.at(index.row())->cut);
     default:
         return {};
     }
@@ -83,9 +88,17 @@ QHash<int, QByteArray> BookmarkListModel::roleNames() const
         {noteRole, "note"},
         {createdRole, "created"},
         {modifiedRole, "modified"},
+        {selectedRole, "selected"},
+        {cutRole, "cut"},
     };
     return roles;
 }
+
+QVariantMap BookmarkListModel::getMap(int const& index) const
+{
+    return mData.at(index)->asVariantMap();
+}
+
 
 //void BookmarkListModel::search(QString const& query, QString const& mode, QString const& parent)
 //{
@@ -162,6 +175,8 @@ void queryDb(QObject* parent, QSqlQuery& query, QList<Bookmark*>& data)
         datum->note = query.value(idNote).toString();
         datum->created = query.value(idCreated).toString();
         datum->modified = query.value(idModified).toString();
+        datum->selected = false;
+        datum->cut = false;
         data.append(datum);
     }
 
@@ -196,6 +211,8 @@ void BookmarkListModel::selectFromContainerIntoModel(QString const& _query)
     if (_query.isEmpty() || !mDb.isOpen())
         return;
 
+    mCurrentContainer = _query;
+
     QSqlQuery query(mDb);
 
 //    if (reverse)
@@ -207,10 +224,55 @@ void BookmarkListModel::selectFromContainerIntoModel(QString const& _query)
 //    }
 //    else
 //    {
-    query.prepare("SELECT * FROM mm_bookmarks WHERE [container] = (:container)");
+    // query.prepare("SELECT * FROM mm_bookmarks WHERE [container] = (:container)");
+    // query.bindValue(":container", _query);
+    // queryDb(this, query, mData);
+//    }
+
+    qDebug() << "[container]" << _query;
+
+    query.prepare(R"EOF(
+    SELECT * FROM (
+        SELECT
+            [identifier],
+            [container],
+            [type],
+            [url],
+            '../' AS [title],
+            [note],
+            [created],
+            [modified]
+        FROM mm_bookmarks
+        WHERE
+            [identifier] == (SELECT [container] FROM mm_bookmarks WHERE [identifier] == (:container))
+    UNION
+        SELECT
+            '0' AS [identifier],
+            NULL AS [container],
+            'CONTAINER' AS [type],
+            NULL AS [url],
+            '../' AS [title],
+            NULL AS [note],
+            NULL AS [created],
+            NULL AS [modified]
+        FROM mm_bookmarks
+        WHERE
+            [identifier] == (:container) AND [container] == '0'
+    UNION
+        SELECT
+            [identifier],
+            [container],
+            [type],
+            [url],
+            [title],
+            [note],
+            [created],
+            [modified]
+        FROM mm_bookmarks WHERE [container] = (:container)
+    ) ORDER BY CASE WHEN [title] == '../' THEN 0 ELSE 1 END;
+    )EOF");
     query.bindValue(":container", _query);
     queryDb(this, query, mData);
-//    }
 
     beginInsertRows(QModelIndex(), 0, mData.size() - 1);
     endInsertRows();
@@ -219,6 +281,8 @@ void BookmarkListModel::selectFromContainerIntoModel(QString const& _query)
 bool BookmarkListModel::insertBookmarks(QList<QVariantMap> const& _data)
 {
     if (!mDb.isOpen())
+        return false;
+    if (_data.isEmpty())
         return false;
 
     QList<Bookmark*> data;
@@ -308,7 +372,7 @@ bool BookmarkListModel::updateBookmarks(QList<QVariantMap> const& _data)
     if (!mDb.isOpen())
         return false;
     if (_data.isEmpty())
-        return true;
+        return false;
 
     QList<Bookmark*> data;
     convert(this, data, _data);
@@ -578,4 +642,51 @@ void BookmarkListModel::convert(QObject* parent, QList<Bookmark*>& result, QList
         result.append(bm);
     }
 //    qDebug() << __LINE__;
+}
+
+
+void BookmarkListModel::goInto(QString const& parent)
+{
+    if (parent.isEmpty())
+        return;
+    selectFromContainerIntoModel(parent);
+    //mParentsHistory.append(parent);
+}
+
+//void BookmarkListModel::goBack()
+//{
+//    if (!goBackable())
+//        return;
+//    mParentsHistory.takeLast();
+//    if (goBackable())
+//        goInto(mParentsHistory.takeLast());
+//    else
+//        goHome();
+//}
+
+//bool BookmarkListModel::goBackable()
+//{
+//    qDebug() << "goBackable" << QTime::currentTime() << mParentsHistory << (mParentsHistory.size() > 1);
+//    return mParentsHistory.size() > 1;
+//}
+
+void BookmarkListModel::goHome()
+{
+    goInto("0");
+}
+
+void BookmarkListModel::goRefresh()
+{
+    goInto(currentContainer());
+//    if (mParentsHistory.isEmpty())
+//        return;
+//    goInto(mParentsHistory.takeLast());
+}
+
+QString BookmarkListModel::currentContainer()
+{
+    return (mCurrentContainer.isEmpty() || mCurrentContainer == "") ? "0" : mCurrentContainer;
+//    if (mParentsHistory.isEmpty())
+//        return "";
+//    return mParentsHistory.last();
 }
