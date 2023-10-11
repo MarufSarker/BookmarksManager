@@ -31,6 +31,7 @@ public:
     QVariant data(QModelIndex const& index, int role = Qt::DisplayRole) const override;
 
     Q_INVOKABLE QVariantMap getMap(int const& index) const;
+    Q_INVOKABLE QList<QVariantMap> selectGetSelections() const;
 
 protected:
     QHash<int, QByteArray> roleNames() const override;
@@ -64,6 +65,7 @@ public slots:
 
     void selectToggle(int const& index);
     bool selectSelected(int const& index);
+    bool selectHasSelection();
 
 private:
     QList<Bookmark*> mData;
@@ -72,6 +74,8 @@ private:
 
 //    QList<QString> mParentsHistory;
     QString mCurrentContainer = "";
+
+    QItemSelectionModel mSelModel;
 
 private:
     void convert(QObject* parent, QList<Bookmark*>& result, QList<QVariantMap> const& other) const;

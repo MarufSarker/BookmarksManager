@@ -4,7 +4,7 @@
 #include <QTime>
 
 BookmarkListModel::BookmarkListModel(QObject *parent)
-    : QAbstractListModel{parent}
+    : QAbstractListModel{parent}, mSelModel{this}
 {
     // mManager.open("./");
 //    mManager.open("/home/cube/Downloads/qt-projects/BookmarksManager/", "mm_bookmarks.db");
@@ -689,4 +689,34 @@ QString BookmarkListModel::currentContainer()
 //    if (mParentsHistory.isEmpty())
 //        return "";
 //    return mParentsHistory.last();
+}
+
+void BookmarkListModel::selectToggle(int const& _index)
+{
+    QModelIndex idx = index(_index, 0);
+    mSelModel.select(idx, QItemSelectionModel::Toggle);
+    mData.at(idx.row())->selected = mSelModel.isSelected(idx);
+    emit dataChanged(idx, idx);
+}
+
+bool BookmarkListModel::selectSelected(int const& _index)
+{
+    return mSelModel.isSelected(index(_index, 0));
+}
+
+bool BookmarkListModel::selectHasSelection()
+{
+    return mSelModel.hasSelection();
+}
+
+QList<QVariantMap> BookmarkListModel::selectGetSelections() const
+{
+    QList<QVariantMap> __deleteModel;
+    for (auto v : mSelModel.selectedIndexes())
+    {
+        if (!v.isValid())
+            continue;
+        __deleteModel.append(getMap(v.row()));
+    }
+    return __deleteModel;
 }

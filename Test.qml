@@ -14,8 +14,6 @@ ApplicationWindow {
     minimumHeight: 50
     minimumWidth: 50
 
-//    property list<int> cutIds: []
-
     Component.onCompleted: {
         listModel.goHome()
     }
@@ -43,14 +41,15 @@ ApplicationWindow {
             }
             ToolButton {
                 id: toolbuttonDelete
-                text: qsTr("D")
+                text: qsTr("Delete")
                 font.bold: true
                 visible: false
-                onClicked: { deleteDialog.createObject(mainWindow).open() }
+                onClicked: { componentDeleteBookmarks.createObject(mainWindow).open() }
+                function _setVisibility() { visible = listModel.selectHasSelection() }
             }
 //            ToolButton {
 //                id: toolbuttonCut
-//                text: qsTr("X")
+//                text: qsTr("Cut")
 //                font.bold: true
 //                visible: false
 //                onClicked: {
@@ -65,18 +64,18 @@ ApplicationWindow {
 //            }
 //            ToolButton {
 //                id: toolbuttonPaste
-//                text: qsTr("V")
+//                text: qsTr("Paste")
 //                font.bold: true
 //                visible: false
 //                onClicked: { }
 //            }
             ToolButton {
-                text: qsTr("+")
+                text: qsTr("Add")
                 font.bold: true
                 onClicked: stack.push(componentAddBookmark)
             }
             ToolButton {
-                text: qsTr("S")
+                text: qsTr("Search")
                 font.bold: true
                 onClicked: {
                     footerToolbar.visible = !footerToolbar.visible
@@ -94,7 +93,7 @@ ApplicationWindow {
             anchors.fill: parent
             focus: true
             Button {
-                text: qsTr("X")
+                text: qsTr("Close")
                 Layout.alignment: Qt.AlignRight
                 Layout.margins: 2
                 onClicked: {
@@ -140,22 +139,20 @@ ApplicationWindow {
     Component {
         id: listDelegate
         Rectangle {
-            property bool __active: false
-//            property bool __cut: false
             width: parent ? parent.width : 0
             implicitHeight: childrenRect ? childrenRect.height : 0
             color: {
-                if (__active)
+                if (model.selected)
                     return "#1C1C1C";
-//                else if (__cut)
-//                    return "#1A1A1A"
+                else if (model.cut)
+                    return "#1A1A1A"
                 return "transparent"
             }
             border.color: "#FFFFFF"
             border.width: 1
-            function updateSelectionStatus() {
-                __active = listSelections.isSelected(listModel.index(model.index, 0))
-//                __cut = (cutIds.indexOf(model.identifier) >= 0)
+            function _selectToggle() {
+                listModel.selectToggle(model.index)
+                toolbuttonDelete._setVisibility()
             }
             RowLayout {
                 width: parent.width
@@ -179,10 +176,7 @@ ApplicationWindow {
                     }
                     MouseArea {
                         anchors.fill: parent
-                        onClicked: {
-                            listSelections.select(listModel.index(model.index, 0), ItemSelectionModel.Toggle)
-                            updateSelectionStatus()
-                        }
+                        onClicked: _selectToggle()
                     }
                 }
                 Rectangle {
@@ -214,11 +208,9 @@ ApplicationWindow {
                         implicitWidth: titleId.width + urlId.width
                         implicitHeight: titleId.height + urlId.height
                         onClicked: {
-                            if (listSelections.hasSelection) {
-                                listSelections.select(listModel.index(model.index, 0), ItemSelectionModel.Toggle)
-                                __active = listSelections.isSelected(listModel.index(model.index, 0))
-                                //__cut = (cutIds.indexOf(model.identifier) >= 0)
-                            } else if (model.type === "CONTAINER")
+                            if (listModel.selectHasSelection())
+                                _selectToggle()
+                            else if (model.type === "CONTAINER")
                                 listModel.goInto(model.identifier)
                         }
                     }
@@ -239,17 +231,6 @@ ApplicationWindow {
                     }
                 }
             }
-        }
-    }
-
-    ItemSelectionModel {
-        id: listSelections
-        model: listModel
-        onSelectionChanged: {
-            let c = (selectedIndexes.length > 0)
-            toolbuttonDelete.visible = c
-            toolbuttonCut.visible = c
-            toolbuttonPaste.visible = (cutIds.length > 0)
         }
     }
 
@@ -479,7 +460,7 @@ ApplicationWindow {
     }
 
     Component {
-        id: deleteDialog
+        id: componentDeleteBookmarks
         Dialog {
             property var __deleteModel: ListModel {}
             title: qsTr("Remove Bookmarks")
@@ -517,13 +498,10 @@ ApplicationWindow {
                     spacing: 5
                     model: __deleteModel
                     Component.onCompleted: {
-                        for (let i = 0; i < listSelections.selectedIndexes.length; ++i) {
-                            let idx = listSelections.selectedIndexes[i]
-                            if (!idx.valid)
-                                continue
-                            let dt = listModel.getMap(idx.row)
-                            __deleteModel.append(dt)
-                        }
+                        __deleteModel.clear()
+                        let sels = listModel.selectGetSelections()
+                        for (let i = 0; i < sels.length; ++i)
+                            __deleteModel.append(sels[i])
                     }
                     delegate: Component {
                         Rectangle {
