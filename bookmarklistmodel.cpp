@@ -94,10 +94,10 @@ QHash<int, QByteArray> BookmarkListModel::roleNames() const
     return roles;
 }
 
-QVariantMap BookmarkListModel::getMap(int const& index) const
-{
-    return mData.at(index)->asVariantMap();
-}
+//QVariantMap BookmarkListModel::getMap(int const& index) const
+//{
+//    return mData.at(index)->asVariantMap();
+//}
 
 
 //void BookmarkListModel::search(QString const& query, QString const& mode, QString const& parent)
@@ -146,14 +146,19 @@ QVariantMap BookmarkListModel::getMap(int const& index) const
 //    endInsertRows();
 //}
 
-void queryDb(QObject* parent, QSqlQuery& query, QList<Bookmark*>& data)
+void queryDb(QObject* parent, QSqlQuery& query, QList<Bookmark*>& data, QList<QVariantMap>const& cuts = {})
 {
     if (!query.exec())
     {
-        qDebug() << query.lastError();
+        qDebug() << query.lastError() << query.executedQuery();
         query.finish();
         return;
     }
+
+    QList<QString> cutIds;
+
+    for (auto v : cuts)
+        cutIds.append(v["identifier"].toString());
 
     int idIdentifier = query.record().indexOf("identifier");
     int idContainer  = query.record().indexOf("container");
@@ -176,7 +181,7 @@ void queryDb(QObject* parent, QSqlQuery& query, QList<Bookmark*>& data)
         datum->created = query.value(idCreated).toString();
         datum->modified = query.value(idModified).toString();
         datum->selected = false;
-        datum->cut = false;
+        datum->cut = cutIds.contains(datum->identifier);
         data.append(datum);
     }
 
@@ -272,10 +277,12 @@ void BookmarkListModel::selectFromContainerIntoModel(QString const& _query)
     ) ORDER BY CASE WHEN [title] == '../' THEN 0 ELSE 1 END;
     )EOF");
     query.bindValue(":container", _query);
-    queryDb(this, query, mData);
+    queryDb(this, query, mData, mCutModel);
 
     beginInsertRows(QModelIndex(), 0, mData.size() - 1);
     endInsertRows();
+
+    clearSelections();
 }
 
 bool BookmarkListModel::insertBookmarks(QList<QVariantMap> const& _data)
@@ -296,31 +303,29 @@ bool BookmarkListModel::insertBookmarks(QList<QVariantMap> const& _data)
         auto bm = data.at(i);
 
         if (bm->container.isEmpty())
-            bm->container.toStdString() = mm::bookmarks::sql::bookmarks::helpers::defaults::container;
+            bm->container = QString::fromStdString(mm::bookmarks::sql::bookmarks::helpers::defaults::container);
 
         if (bm->type.toStdString() != mm::bookmarks::sql::bookmarks::helpers::type::container &&
             bm->type.toStdString() != mm::bookmarks::sql::bookmarks::helpers::type::url)
             return false;
 
         QString _sql {};
-        QString _i = QString::number(i);
 
-        _sql += "(";
-        _sql += ":container" + _i + ", ";
-        _sql += ":type" + _i + ", ";
-        _sql += ":url" + _i + ", ";
-        _sql += ":title" + _i + ", ";
-        _sql += ":note" + _i + "";
-        _sql += ")";
+        QString _co = ":container" + QString::number(i);
+        QString _ty = ":type" + QString::number(i);
+        QString _ur = ":url" + QString::number(i);
+        QString _ti = ":title" + QString::number(i);
+        QString _no = ":note" + QString::number(i);
+
+        _sql += "(" + _co + ", " + _ty + ", " + _ur + ", " + _ti + ", " + _no + ")";
         _sql += ((i + 1) < data.size()) ? ", " : "";
-
         sql += _sql;
 
-        bindings[":container" + _i] = bm->container;
-        bindings[":type" + _i] = bm->type;
-        bindings[":url" + _i] = bm->url;
-        bindings[":title" + _i] = bm->title;
-        bindings[":note" + _i] = bm->note;
+        bindings[_co] = bm->container;
+        bindings[_ty] = bm->type;
+        bindings[_ur] = (!bm->url.isEmpty()) ? bm->url : nullptr;
+        bindings[_ti] = (!bm->title.isEmpty()) ? bm->title : nullptr;
+        bindings[_no] = (!bm->note.isEmpty()) ? bm->note : nullptr;
     }
 
     sql += ";";
@@ -333,7 +338,7 @@ bool BookmarkListModel::insertBookmarks(QList<QVariantMap> const& _data)
 
     if (!query.exec())
     {
-        qDebug() << query.lastError();
+        qDebug() << query.lastError() << query.executedQuery() << bindings;
         query.finish();
         return false;
     }
@@ -387,27 +392,33 @@ bool BookmarkListModel::updateBookmarks(QList<QVariantMap> const& _data)
         QList<QString> items;
         QList<QPair<QString, QString>> binds;
 
-        binds.append({":identifier", bm->identifier});
+        QString _id = ":identifier" + QString::number(i);
+        QString _co = ":container" + QString::number(i);
+        QString _ur = ":url" + QString::number(i);
+        QString _ti = ":title" + QString::number(i);
+        QString _no = ":note" + QString::number(i);
+
+        binds.append({_id, bm->identifier});
 
         if (!bm->container.isEmpty())
         {
-            items.append("[container] = :container");
-            binds.append({":container", bm->container});
+            items.append("[container] = " + _co);
+            binds.append({_co, bm->container});
         }
         if (!bm->url.isEmpty())
         {
-            items.append("[url] = :url");
-            binds.append({":url", bm->url});
+            items.append("[url] = " + _ur);
+            binds.append({_ur, bm->url});
         }
         if (!bm->title.isEmpty())
         {
-            items.append("[title] = :title");
-            binds.append({":title", bm->title});
+            items.append("[title] = " + _ti);
+            binds.append({_ti, bm->title});
         }
         if (!bm->note.isEmpty())
         {
-            items.append("[note] = :note");
-            binds.append({":note", bm->note});
+            items.append("[note] = " + _no);
+            binds.append({_no, bm->note});
         }
 
         QString sql = "UPDATE mm_bookmarks SET";
@@ -420,7 +431,7 @@ bool BookmarkListModel::updateBookmarks(QList<QVariantMap> const& _data)
         // sql += ", [title] = :title";
         // sql += ", [note] = :note";
 
-        sql += " WHERE [identifier] == :identifier;";
+        sql += " WHERE [identifier] == " + _id + ";";
 //        qDebug() << __LINE__ << sql;
         QSqlQuery query(mDb);
         query.prepare(sql);
@@ -439,8 +450,7 @@ bool BookmarkListModel::updateBookmarks(QList<QVariantMap> const& _data)
 
         if (!query.exec())
         {
-            qDebug() << query.lastError();
-//            qDebug() << "Query:" << query.executedQuery();
+            qDebug() << query.lastError() << query.executedQuery() << binds;
             query.finish();
             return false;
         }
@@ -487,7 +497,7 @@ bool BookmarkListModel::deleteBookmarks(QList<QString> const& data)
 
     if (!query.exec())
     {
-        qDebug() << query.lastError();
+        qDebug() << query.lastError() << query.executedQuery() << bindings;
         query.finish();
         return false;
     }
@@ -694,9 +704,12 @@ QString BookmarkListModel::currentContainer()
 void BookmarkListModel::selectToggle(int const& _index)
 {
     QModelIndex idx = index(_index, 0);
+    if (!idx.isValid())
+        return;
     mSelModel.select(idx, QItemSelectionModel::Toggle);
     mData.at(idx.row())->selected = mSelModel.isSelected(idx);
     emit dataChanged(idx, idx);
+    emit selectionsSizeChanged();
 }
 
 bool BookmarkListModel::selectSelected(int const& _index)
@@ -709,14 +722,70 @@ bool BookmarkListModel::selectHasSelection()
     return mSelModel.hasSelection();
 }
 
-QList<QVariantMap> BookmarkListModel::selectGetSelections() const
+QList<QVariantMap> BookmarkListModel::selectGetSelections()
 {
-    QList<QVariantMap> __deleteModel;
+    QList<QVariantMap> res;
     for (auto v : mSelModel.selectedIndexes())
     {
         if (!v.isValid())
             continue;
-        __deleteModel.append(getMap(v.row()));
+        res.append(mData.at(v.row())->asVariantMap());
     }
-    return __deleteModel;
+    return res;
+}
+
+void BookmarkListModel::clearSelections()
+{
+    for (auto v : mSelModel.selectedIndexes())
+    {
+        selectToggle(v.row());
+    }
+}
+
+void BookmarkListModel::cutSelections()
+{
+    mCutModel.clear();
+
+    for (auto v : mSelModel.selectedIndexes())
+    {
+        if (!v.isValid())
+            continue;
+        mData.at(v.row())->cut = true;
+        mCutModel.append(mData.at(v.row())->asVariantMap());
+        emit dataChanged(v, v);
+    }
+
+    emit cutSizeChanged();
+
+    clearSelections();
+}
+
+bool BookmarkListModel::cutHasSelection()
+{
+    return mCutModel.size() > 0;
+}
+
+bool BookmarkListModel::cutPaste()
+{
+    if (mCutModel.isEmpty())
+        return false;
+    if (mCurrentContainer.isEmpty())
+        return false;
+
+    QList<QVariantMap> bms;
+
+    for (auto v : mCutModel)
+    {
+        QVariantMap bm;
+        bm["identifier"] = v["identifier"];
+        bm["container"] = mCurrentContainer;
+        bms.append(bm);
+    }
+
+    bool res = updateBookmarks(bms);
+
+    mCutModel.clear();
+    emit cutSizeChanged();
+
+    return res;
 }

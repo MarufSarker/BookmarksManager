@@ -30,8 +30,8 @@ public:
     int rowCount(QModelIndex const& parent) const override;
     QVariant data(QModelIndex const& index, int role = Qt::DisplayRole) const override;
 
-    Q_INVOKABLE QVariantMap getMap(int const& index) const;
-    Q_INVOKABLE QList<QVariantMap> selectGetSelections() const;
+//    Q_INVOKABLE QVariantMap getMap(int const& index) const;
+//    Q_INVOKABLE QList<QVariantMap> selectGetSelections() const;
 
 protected:
     QHash<int, QByteArray> roleNames() const override;
@@ -66,6 +66,15 @@ public slots:
     void selectToggle(int const& index);
     bool selectSelected(int const& index);
     bool selectHasSelection();
+    QList<QVariantMap> selectGetSelections();
+
+    void cutSelections();
+    bool cutHasSelection();
+    bool cutPaste();
+
+signals:
+    void selectionsSizeChanged();
+    void cutSizeChanged();
 
 private:
     QList<Bookmark*> mData;
@@ -76,9 +85,11 @@ private:
     QString mCurrentContainer = "";
 
     QItemSelectionModel mSelModel;
+    QList<QVariantMap> mCutModel;
 
 private:
     void convert(QObject* parent, QList<Bookmark*>& result, QList<QVariantMap> const& other) const;
+    void clearSelections();
 };
 
 #endif // BOOKMARKLISTMODEL_H

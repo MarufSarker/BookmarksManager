@@ -45,30 +45,37 @@ ApplicationWindow {
                 font.bold: true
                 visible: false
                 onClicked: { componentDeleteBookmarks.createObject(mainWindow).open() }
-                function _setVisibility() { visible = listModel.selectHasSelection() }
+                Connections {
+                    target: listModel
+                    function onSelectionsSizeChanged() { toolbuttonDelete.visible = listModel.selectHasSelection() }
+                }
             }
-//            ToolButton {
-//                id: toolbuttonCut
-//                text: qsTr("Cut")
-//                font.bold: true
-//                visible: false
-//                onClicked: {
-//                    for (let i = 0; i < listSelections.selectedIndexes.length; ++i) {
-//                        let idx = listSelections.selectedIndexes[i]
-//                        if (!idx.valid)
-//                            continue
-//                        let dt = listModel.getMap(idx.row)
-//                        cutIds.push(dt.identifier)
-//                    }
-//                }
-//            }
-//            ToolButton {
-//                id: toolbuttonPaste
-//                text: qsTr("Paste")
-//                font.bold: true
-//                visible: false
-//                onClicked: { }
-//            }
+            ToolButton {
+                id: toolbuttonCut
+                text: qsTr("Cut")
+                font.bold: true
+                visible: false
+                onClicked: listModel.cutSelections()
+                Connections {
+                    target: listModel
+                    function onSelectionsSizeChanged() { toolbuttonCut.visible = listModel.selectHasSelection() }
+                }
+            }
+            ToolButton {
+                id: toolbuttonPaste
+                text: qsTr("Paste")
+                font.bold: true
+                visible: false
+                onClicked: {
+                    let res = listModel.cutPaste()
+                    if (res)
+                        listModel.goRefresh()
+                }
+                Connections {
+                    target: listModel
+                    function onCutSizeChanged() { toolbuttonPaste.visible = listModel.cutHasSelection() }
+                }
+            }
             ToolButton {
                 text: qsTr("Add")
                 font.bold: true
@@ -81,6 +88,20 @@ ApplicationWindow {
                     footerToolbar.visible = !footerToolbar.visible
                     if (footerToolbar.visible)
                         searchField.forceActiveFocus()
+                }
+            }
+            ToolButton {
+                text: qsTr(":")
+                font.bold: true
+                Layout.rightMargin: 5
+                onClicked: toolbarExtras.open()
+                Menu {
+                    id: toolbarExtras
+                    closePolicy: Menu.CloseOnPressOutside | Menu.CloseOnEscape
+                    MenuItem {
+                        text: qsTr("Import")
+                        onClicked: { console.log("Import from") }
+                    }
                 }
             }
         }
@@ -145,14 +166,14 @@ ApplicationWindow {
                 if (model.selected)
                     return "#1C1C1C";
                 else if (model.cut)
-                    return "#1A1A1A"
+                    return "#555555"
                 return "transparent"
             }
             border.color: "#FFFFFF"
             border.width: 1
             function _selectToggle() {
-                listModel.selectToggle(model.index)
-                toolbuttonDelete._setVisibility()
+                if (model.title !== "../")
+                    listModel.selectToggle(model.index)
             }
             RowLayout {
                 width: parent.width
@@ -307,7 +328,6 @@ ApplicationWindow {
                             let res = listModel.updateBookmarks([bm])
                             if (res) {
                                 editInfo.text = "Updated"
-                                // listModel.goInto(editingModel.container)
                                 listModel.goRefresh()
                                 stack.pop()
                             } else
