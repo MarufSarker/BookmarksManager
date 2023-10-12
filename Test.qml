@@ -3,6 +3,7 @@ import QtQuick.Window
 import QtQuick.Controls
 import QtQuick.Layouts
 import QtQuick.Dialogs
+import QtCore
 
 
 ApplicationWindow {
@@ -23,6 +24,24 @@ ApplicationWindow {
         anchors.fill: parent
         initialItem: componentBookmarksList
     }
+
+//    Component {
+//        id: test
+//        ScrollView {
+//            property var _parent: parent
+//            contentHeight: cld.height //children[0].children[0].children[0].height
+//            ColumnLayout {
+//                id: cld
+//                width: _parent ? _parent.width : 0
+//                Label {
+//                    text: "ABC _parent_parent _parent _parent _parent _parent _parent _parent _parent _parent _parent _parent"
+//                    font.pixelSize: 224
+//                    wrapMode: Label.WrapAnywhere
+//                    Layout.preferredWidth: parent.width
+//                }
+//            }
+//        }
+//    }
 
     header: ToolBar {
         RowLayout {
@@ -303,9 +322,11 @@ ApplicationWindow {
         id: componentEditBookmark
         ScrollView {
             property var editingModel: null
-            contentWidth: parent ? parent.width : 0
+            property var _parent: parent
+            contentHeight: cld.height //children[0].children[0].children[0].height
             ColumnLayout {
-                width: parent.width
+                id: cld
+                width: _parent ? _parent.width : 0
                 RowLayout {
                     width: parent.width
                     Button {
@@ -375,9 +396,11 @@ ApplicationWindow {
     Component {
         id: componentAddBookmark
         ScrollView {
-            contentWidth: parent ? parent.width : 0
+            property var _parent: parent
+            contentHeight: cld.height //children[0].children[0].children[0].height
             ColumnLayout {
-                width: parent.width
+                id: cld
+                width: _parent ? _parent.width : 0
                 RowLayout {
                     width: parent.width
                     Button {
@@ -559,9 +582,11 @@ ApplicationWindow {
     Component {
         id: componentImportBookmarks
         ScrollView {
-            contentWidth: parent ? parent.width : 0
+            property var _parent: parent
+            contentHeight: cld.height //children[0].children[0].children[0].height
             ColumnLayout {
-                width: parent.width
+                id: cld
+                width: _parent ? _parent.width : 0
                 RowLayout {
                     width: parent.width
                     Button {
