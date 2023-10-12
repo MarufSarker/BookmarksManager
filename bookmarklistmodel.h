@@ -72,6 +72,8 @@ public slots:
     bool cutHasSelection();
     bool cutPaste();
 
+    QVariantMap getTypesCount();
+
 signals:
     void selectionsSizeChanged();
     void cutSizeChanged();

@@ -100,7 +100,7 @@ ApplicationWindow {
                     closePolicy: Menu.CloseOnPressOutside | Menu.CloseOnEscape
                     MenuItem {
                         text: qsTr("Import")
-                        onClicked: { console.log("Import from") }
+                        onClicked: { stack.push(componentImportBookmarks) }
                     }
                 }
             }
@@ -550,6 +550,139 @@ ApplicationWindow {
                                 }
                             }
                         }
+                    }
+                }
+            }
+        }
+    }
+
+    Component {
+        id: componentImportBookmarks
+        ScrollView {
+            contentWidth: parent ? parent.width : 0
+            ColumnLayout {
+                width: parent.width
+                RowLayout {
+                    width: parent.width
+                    Button {
+                        id: importOk
+                        text: qsTr("Import")
+                        Layout.fillWidth: true
+                        Layout.margins: 5
+                        onClicked: {
+                            importInfo.text = ""
+                            let t = importViewType.currentValue
+                            let f = importFileDialog.selectedFile.toString()
+                            if (t.length <= 0 || f.length <= 0)
+                            {
+                                importInfo.text = "Please Select Type and File"
+                                return
+                            }
+                            let prevData = listModel.getTypesCount()
+                            let res = listModel.importFrom(t, f)
+                            if (res) {
+                                let currData = listModel.getTypesCount()
+                                let txt = "IMPORTED\nPREVIOUS\n"
+                                for (let k1 in prevData)
+                                    txt += k1 + ": " + prevData[k1] + " "
+                                txt += "\nCURRENT\n"
+                                for (let k2 in currData)
+                                    txt += k2 + ": " + currData[k2] + " "
+                                txt += "\nDIFFERENCES\n"
+                                for (let k3 in currData)
+                                    txt += k3 + ": " + (currData[k3] - prevData[k3]) + " "
+                                importInfo.text = txt
+                                listModel.goRefresh()
+                                //stack.pop()
+                            } else
+                                importInfo.text = "Error Importing"
+                        }
+                    }
+                    Button {
+                        id: importCancel
+                        text: qsTr("Close")
+                        Layout.fillWidth: true
+                        Layout.margins: 5
+                        onClicked: stack.pop()
+                    }
+                }
+                Text {
+                    id: importInfo
+                    width: parent.width
+                    text: ""
+                    color: "#FFFFFF"
+                    font.bold: true
+                    Layout.margins: 5
+                    Layout.fillWidth: true
+                    horizontalAlignment: Qt.AlignHCenter
+                    verticalAlignment: Qt.AlignVCenter
+                    wrapMode: Qt.TextWrapAnywhere
+                }
+                RowLayout {
+                    width: parent.width
+                    Label {
+                        text: "Type"
+                        color: "#B0B0B0"
+                        font.italic: true
+                        Layout.fillWidth: false
+                        Layout.margins: 0
+                        Layout.leftMargin: 2
+                        Layout.rightMargin: 2
+                    }
+                    ComboBox {
+                        id: importViewType
+                        currentIndex: 0
+                        textRole: "text"
+                        valueRole: "value"
+                        model: ListModel {
+                            ListElement {text: "Firefox"; value: "FIREFOX_SQLITE"}
+                            ListElement {text: "MM Bookmarks"; value: "MMBOOKMARKS"}
+                        }
+                        Layout.fillWidth: true
+                        Layout.margins: 0
+                        Layout.leftMargin: 2
+                        Layout.rightMargin: 2
+                    }
+                    Button {
+                        text: qsTr("Select File")
+                        onClicked: importFileDialog.open()
+                        Layout.fillWidth: false
+                        Layout.margins: 0
+                        Layout.leftMargin: 2
+                        Layout.rightMargin: 2
+                    }
+                }
+                RowLayout {
+                    width: parent.width
+                    Label {
+                        text: "File"
+                        color: "#B0B0B0"
+                        font.italic: true
+                        Layout.fillWidth: false
+                        Layout.margins: 0
+                        Layout.leftMargin: 2
+                        Layout.rightMargin: 2
+                    }
+                    Label {
+                        id: importFile
+                        color: "#FFFFFF"
+                        font.italic: false
+                        Layout.fillWidth: true
+                        Layout.margins: 0
+                        Layout.leftMargin: 2
+                        Layout.rightMargin: 2
+                        horizontalAlignment: Qt.AlignHCenter
+                        verticalAlignment: Qt.AlignVCenter
+                        wrapMode: Qt.TextWrapAnywhere
+                    }
+                    FileDialog {
+                        id: importFileDialog
+                        currentFolder: StandardPaths.writableLocation(StandardPaths.DocumentsLocation)
+                        onAccepted: importFile.text = selectedFile
+                        modality: Qt.ApplicationModal
+                        fileMode: FileDialog.OpenFile
+                        options: FileDialog.ReadOnly
+                        nameFilters: ["SQlite Databases (*.db *.sqlite)", "All Files (*)"]
                     }
                 }
             }

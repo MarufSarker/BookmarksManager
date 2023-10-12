@@ -789,3 +789,33 @@ bool BookmarkListModel::cutPaste()
 
     return res;
 }
+
+QVariantMap BookmarkListModel::getTypesCount()
+{
+    auto _queryDb = [](QSqlQuery& _query) -> int
+    {
+        if (!_query.exec())
+        {
+            qDebug() << _query.lastError() << _query.executedQuery();
+            _query.finish();
+            return 0;
+        }
+        int colCount = _query.record().indexOf("COUNT([type])");
+        QString count;
+        while (_query.next())
+            count = _query.value(colCount).toString();
+        _query.finish();
+        return count.toInt();
+    };
+
+    QVariantMap res;
+    QSqlQuery query(mDb);
+
+    query.prepare("SELECT COUNT([type]) FROM mm_bookmarks WHERE [type] == 'CONTAINER'");
+    res["CONTAINER"] = _queryDb(query);
+
+    query.prepare("SELECT COUNT([type]) FROM mm_bookmarks WHERE [type] == 'URL'");
+    res["URL"] = _queryDb(query);
+
+    return res;
+}
