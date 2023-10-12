@@ -59,43 +59,6 @@ ApplicationWindow {
                 }
             }
             ToolButton {
-                id: toolbuttonDelete
-                text: qsTr("Delete")
-                font.bold: true
-                visible: false
-                onClicked: { componentDeleteBookmarks.createObject(mainWindow).open() }
-                Connections {
-                    target: listModel
-                    function onSelectionsSizeChanged() { toolbuttonDelete.visible = listModel.selectHasSelection() }
-                }
-            }
-            ToolButton {
-                id: toolbuttonCut
-                text: qsTr("Cut")
-                font.bold: true
-                visible: false
-                onClicked: listModel.cutSelections()
-                Connections {
-                    target: listModel
-                    function onSelectionsSizeChanged() { toolbuttonCut.visible = listModel.selectHasSelection() }
-                }
-            }
-            ToolButton {
-                id: toolbuttonPaste
-                text: qsTr("Paste")
-                font.bold: true
-                visible: false
-                onClicked: {
-                    let res = listModel.cutPaste()
-                    if (res)
-                        listModel.goRefresh()
-                }
-                Connections {
-                    target: listModel
-                    function onCutSizeChanged() { toolbuttonPaste.visible = listModel.cutHasSelection() }
-                }
-            }
-            ToolButton {
                 text: qsTr("Add")
                 font.bold: true
                 onClicked: stack.push(componentAddBookmark)
@@ -118,12 +81,53 @@ ApplicationWindow {
                     id: toolbarExtras
                     closePolicy: Menu.CloseOnPressOutside | Menu.CloseOnEscape
                     MenuItem {
+                        id: toolbuttonCut
+                        text: qsTr("Cut")
+                        enabled: false
+                        onClicked: listModel.cutSelections()
+                        Connections {
+                            target: listModel
+                            function onSelectionsSizeChanged() { toolbuttonCut.enabled = listModel.selectHasSelection() }
+                        }
+                    }
+                    MenuItem {
+                        id: toolbuttonPaste
+                        text: qsTr("Paste")
+                        enabled: false
+                        onClicked: {
+                            let res = listModel.cutPaste()
+                            if (res)
+                                listModel.goRefresh()
+                        }
+                        Connections {
+                            target: listModel
+                            function onCutSizeChanged() { toolbuttonPaste.enabled = listModel.cutHasSelection() }
+                        }
+                    }
+                    MenuSeparator {}
+                    MenuItem {
+                        id: toolbuttonDelete
+                        text: qsTr("Delete")
+                        enabled: false
+                        onClicked: { componentDeleteBookmarks.createObject(mainWindow).open() }
+                        Connections {
+                            target: listModel
+                            function onSelectionsSizeChanged() { toolbuttonDelete.enabled = listModel.selectHasSelection() }
+                        }
+                    }
+                    MenuSeparator {}
+                    MenuItem {
                         text: qsTr("Import")
                         onClicked: { stack.push(componentImportBookmarks) }
                     }
                     MenuItem {
                         text: qsTr("Vacuum")
                         onClicked: { componentVacuumDatabase.createObject(mainWindow).open() }
+                    }
+                    MenuSeparator {}
+                    MenuItem {
+                        text: qsTr("Exit")
+                        onClicked: { Qt.quit() }
                     }
                 }
             }
