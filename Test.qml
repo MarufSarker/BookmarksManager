@@ -25,24 +25,6 @@ ApplicationWindow {
         initialItem: componentBookmarksList
     }
 
-//    Component {
-//        id: test
-//        ScrollView {
-//            property var _parent: parent
-//            contentHeight: cld.height //children[0].children[0].children[0].height
-//            ColumnLayout {
-//                id: cld
-//                width: _parent ? _parent.width : 0
-//                Label {
-//                    text: "ABC _parent_parent _parent _parent _parent _parent _parent _parent _parent _parent _parent _parent"
-//                    font.pixelSize: 224
-//                    wrapMode: Label.WrapAnywhere
-//                    Layout.preferredWidth: parent.width
-//                }
-//            }
-//        }
-//    }
-
     header: ToolBar {
         RowLayout {
             anchors.fill: parent
