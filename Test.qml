@@ -121,6 +121,10 @@ ApplicationWindow {
                         text: qsTr("Import")
                         onClicked: { stack.push(componentImportBookmarks) }
                     }
+                    MenuItem {
+                        text: qsTr("Vacuum")
+                        onClicked: { componentVacuumDatabase.createObject(mainWindow).open() }
+                    }
                 }
             }
         }
@@ -713,6 +717,41 @@ ApplicationWindow {
                         nameFilters: ["SQlite Databases (*.db *.sqlite)", "All Files (*)"]
                     }
                 }
+            }
+        }
+    }
+
+    Component {
+        id: componentVacuumDatabase
+        Dialog {
+            title: qsTr("Vacuum Database")
+            width: parent ? (parent.width * 0.8) : 0
+            height: {
+                let ch = contentChildren.height
+                let ph = parent ? (parent.height * 0.8) : 0
+                if (ch < ph)
+                    return ph
+                else
+                    return ch
+            }
+            padding: 10
+            margins: 10
+            x: parent ? ((parent.width - width) / 2) : 0
+            y: parent ? ((parent.height - height) / 2) : 0
+            modal: true
+            closePolicy: Dialog.NoAutoClose
+            standardButtons: Dialog.Ok | Dialog.Cancel
+            onAccepted: {
+                listModel.vacuum()
+                destroy()
+            }
+            onRejected: destroy()
+            Text {
+                width: parent ? parent.width : 0
+                height: parent ? parent.height : 0
+                wrapMode: Text.WrapAnywhere
+                color: "#FFFFFF"
+                text: "Clean database from leftover entries."
             }
         }
     }
