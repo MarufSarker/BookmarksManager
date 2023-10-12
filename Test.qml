@@ -324,6 +324,7 @@ ApplicationWindow {
             property var editingModel: null
             property var _parent: parent
             contentHeight: cld.height //children[0].children[0].children[0].height
+            contentWidth: _parent ? _parent.width : 0
             ColumnLayout {
                 id: cld
                 width: _parent ? _parent.width : 0
@@ -369,10 +370,10 @@ ApplicationWindow {
                     color: "#FFFFFF"
                     font.bold: true
                     Layout.margins: 5
-                    Layout.fillWidth: true
+                    Layout.preferredWidth: parent.width - (2 * Layout.margins)
                     horizontalAlignment: Qt.AlignHCenter
                     verticalAlignment: Qt.AlignVCenter
-                    wrapMode: Qt.TextWrapAnywhere
+                    wrapMode: Text.WrapAnywhere
                 }
                 LabeledTextEdit {
                     id: editTitle
@@ -398,6 +399,7 @@ ApplicationWindow {
         ScrollView {
             property var _parent: parent
             contentHeight: cld.height //children[0].children[0].children[0].height
+            contentWidth: _parent ? _parent.width : 0
             ColumnLayout {
                 id: cld
                 width: _parent ? _parent.width : 0
@@ -452,10 +454,10 @@ ApplicationWindow {
                     color: "#FFFFFF"
                     font.bold: true
                     Layout.margins: 5
-                    Layout.fillWidth: true
+                    Layout.preferredWidth: parent.width - (2 * Layout.margins)
                     horizontalAlignment: Qt.AlignHCenter
                     verticalAlignment: Qt.AlignVCenter
-                    wrapMode: Qt.TextWrapAnywhere
+                    wrapMode: Text.WrapAnywhere
                 }
                 RowLayout {
                     width: parent.width
@@ -584,6 +586,7 @@ ApplicationWindow {
         ScrollView {
             property var _parent: parent
             contentHeight: cld.height //children[0].children[0].children[0].height
+            contentWidth: _parent ? _parent.width : 0
             ColumnLayout {
                 id: cld
                 width: _parent ? _parent.width : 0
@@ -638,10 +641,10 @@ ApplicationWindow {
                     color: "#FFFFFF"
                     font.bold: true
                     Layout.margins: 5
-                    Layout.fillWidth: true
+                    Layout.preferredWidth: parent.width - (2 * Layout.margins)
                     horizontalAlignment: Qt.AlignHCenter
                     verticalAlignment: Qt.AlignVCenter
-                    wrapMode: Qt.TextWrapAnywhere
+                    wrapMode: Text.WrapAnywhere
                 }
                 RowLayout {
                     width: parent.width
