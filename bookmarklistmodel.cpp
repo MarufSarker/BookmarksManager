@@ -611,6 +611,7 @@ bool BookmarkListModel::importFrom(QString const& from, QString const& path)
     static auto _import_cleanup = [](QSqlDatabase& db, QList<QString> const& cl, QString const& dt)
     {
         // cleanup
+        qDebug() << "Import Cleanup";
         for (auto const& v : cl)
         {
             QSqlQuery query(db);
@@ -620,6 +621,7 @@ bool BookmarkListModel::importFrom(QString const& from, QString const& path)
             query.finish();
         }
         // detach
+        qDebug() << "Import Detach";
         QSqlQuery query(db);
         query.prepare(dt);
         if (!query.exec())
@@ -636,31 +638,34 @@ bool BookmarkListModel::importFrom(QString const& from, QString const& path)
 //        _att.replace("\"", "\\\"");
 //        _att.replace(";", "\\;");
 
+        qDebug() << "Import Attach";
         QSqlQuery query(db);
         query.prepare(_att);
         if (!query.exec())
             qDebug() << query.lastError() << query.executedQuery();
-        qDebug() << query.lastError() << query.executedQuery();
+//        qDebug() << query.lastError() << query.executedQuery();
         query.finish();
 
+        qDebug() << "Import Prepare";
         for (auto const& v : prep)
         {
             QSqlQuery query(db);
             query.prepare(v);
             if (!query.exec())
                 qDebug() << query.lastError() << query.executedQuery();
-            qDebug() << query.lastError() << query.executedQuery();
+//            qDebug() << query.lastError() << query.executedQuery();
             query.finish();
         }
 
         // process
+        qDebug() << "Import Process";
         for (auto const& v : proc)
         {
             QSqlQuery query(db);
             query.prepare(v);
             if (!query.exec())
                 qDebug() << query.lastError() << query.executedQuery();
-            qDebug() << query.lastError() << query.executedQuery();
+//            qDebug() << query.lastError() << query.executedQuery();
             query.finish();
         }
     };
