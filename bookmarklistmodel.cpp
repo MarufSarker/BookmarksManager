@@ -51,6 +51,15 @@ BookmarkListModel::BookmarkListModel(QObject *parent)
 //    }
 }
 
+QSqlDatabase BookmarkListModel::getDatabase()
+{
+    auto db = QSqlDatabase::database(getDatabasePath());
+//    qDebug() << db;
+    return db;
+}
+
+//void BookmarkListModel::closeDatabase();
+
 void BookmarkListModel::reopenDatabase()
 {
 //    QString dbDir = getDatabaseDirectory();
@@ -58,22 +67,33 @@ void BookmarkListModel::reopenDatabase()
 //        return;
 //    QString dbPath = dbDir + "/mm_bookmarks.db";
 //    reopenDatabase(dbPath);
-    reopenDatabase(getDatabasePath());
-}
+//    reopenDatabase(getDatabasePath());
+//}
 
-void BookmarkListModel::reopenDatabase(QString const& path)
-{
+//void BookmarkListModel::reopenDatabase(QString const& path)
+//{
+    QString path = getDatabasePath();
+//    QSqlDatabase mDb = getDatabase();
+
     qDebug() << "Opening Database:" << path;
-    if (mDb.isOpen())
-        mDb.close();
+    if (getDatabase().isValid() || getDatabase().isOpen())
+    {
+        getDatabase().close();
+        QSqlDatabase::removeDatabase(path);
+    }
     //    QString dbPath ("/home/cube/Downloads/qt-projects/BookmarksManager/mm_bookmarks.db");
-    mDb = QSqlDatabase::addDatabase("QSQLITE");
+    QSqlDatabase mDb = QSqlDatabase::addDatabase("QSQLITE", path);
     mDb.setDatabaseName(path);
-    if (!mDb.open())
+//    qDebug() << __LINE__ << mDb << path;
+    if (!mDb.isValid() || !mDb.open())
     {
         qDebug() << mDb.lastError();
+        mDb.close();
+        QSqlDatabase::removeDatabase(path);
         return;
     }
+//    qDebug() << __LINE__ << mDb << path;
+    qDebug() << "Opened Database:" << mDb.databaseName();
     // prepare
     QSqlQuery query(mDb);
     try
@@ -251,6 +271,8 @@ void BookmarkListModel::selectIntoModel(QString const& _query)
     mData.clear();
     endRemoveRows();
 
+    auto mDb = getDatabase();
+
     if (_query.isEmpty() || !mDb.isOpen())
         return;
 
@@ -269,6 +291,8 @@ void BookmarkListModel::selectFromContainerIntoModel(QString const& _query)
     beginRemoveRows(QModelIndex(), 0, mData.size() - 1);
     mData.clear();
     endRemoveRows();
+
+    auto mDb = getDatabase();
 
     if (_query.isEmpty() || !mDb.isOpen())
         return;
@@ -344,6 +368,8 @@ void BookmarkListModel::selectFromContainerIntoModel(QString const& _query)
 
 bool BookmarkListModel::insertBookmarks(QList<QVariantMap> const& _data)
 {
+    auto mDb = getDatabase();
+
     if (!mDb.isOpen())
         return false;
     if (_data.isEmpty())
@@ -430,6 +456,7 @@ bool BookmarkListModel::insertBookmarks(QList<QVariantMap> const& _data)
 
 bool BookmarkListModel::updateBookmarks(QList<QVariantMap> const& _data)
 {
+    auto mDb = getDatabase();
 //    qDebug() << __LINE__ << _data[0].keys().isEmpty();
     if (!mDb.isOpen())
         return false;
@@ -526,6 +553,8 @@ bool BookmarkListModel::updateBookmarks(QList<QVariantMap> const& _data)
 
 bool BookmarkListModel::deleteBookmarks(QList<QString> const& data)
 {
+    auto mDb = getDatabase();
+
     if (!mDb.isOpen())
         return false;
     if (data.isEmpty())
@@ -565,6 +594,8 @@ bool BookmarkListModel::deleteBookmarks(QList<QString> const& data)
 
 bool BookmarkListModel::importFrom(QString const& from, QString const& path)
 {
+    auto mDb = getDatabase();
+
     static QString const typeFF = "FIREFOX_SQLITE";
     static QString const typeMM = "MMBOOKMARKS";
 
@@ -679,6 +710,7 @@ bool BookmarkListModel::importFrom(QString const& from, QString const& path)
 
 bool BookmarkListModel::vacuum()
 {
+    auto mDb = getDatabase();
     if (!mDb.isOpen())
         return false;
     QSqlQuery query(mDb);
@@ -857,6 +889,8 @@ bool BookmarkListModel::cutPaste()
 
 QVariantMap BookmarkListModel::getTypesCount()
 {
+    auto mDb = getDatabase();
+
     auto _queryDb = [](QSqlQuery& _query) -> int
     {
         if (!_query.exec())
@@ -888,7 +922,7 @@ QVariantMap BookmarkListModel::getTypesCount()
 QString BookmarkListModel::getDatabasePath()
 {
     QString path = QStandardPaths::writableLocation(QStandardPaths::DocumentsLocation) + "/mm_bookmarks.db";
-    qDebug() << "Database:" << path;
+    // qDebug() << "Database:" << path;
     return path;
 //    QSettings set(settingsOrg, settingsApp);
 //    qDebug() << "Settings File:" << set.fileName();
@@ -926,4 +960,34 @@ QString BookmarkListModel::getDatabasePath()
 QString BookmarkListModel::toLocalFile(QString const& path) const
 {
     return QUrl(path).toLocalFile();
+}
+
+bool BookmarkListModel::exportTo(QString const& path)
+{
+    qDebug() << "Export Path:" << path;
+    if (getDatabase().isOpen())
+    {
+        getDatabase().close();
+        QSqlDatabase::removeDatabase(getDatabasePath());
+    }
+    QString from = getDatabasePath();
+    qDebug() << "Export From:" << from;
+    if (!QFile::exists(from))
+    {
+        qDebug() << "Exporting file does not exists";
+        reopenDatabase();
+        return false;
+    }
+    QString to = path + "/mm_bookmarks.db";
+    qDebug() << "Export To:" << to;
+    if (QFile::exists(to))
+    {
+        qDebug() << "Exported to file already exists";
+        reopenDatabase();
+        return false;
+    }
+    bool res = QFile::copy(from, to);
+    qDebug() << "Exported:" << res;
+    reopenDatabase();
+    return res;
 }

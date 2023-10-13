@@ -109,7 +109,9 @@ ApplicationWindow {
                     }
                     MenuItem {
                         text: qsTr("Export")
-                        onClicked: {}
+                        onClicked: {
+                            exportFolderDialog.open()
+                        }
                     }
                     MenuSeparator {}
                     MenuItem {
@@ -859,5 +861,21 @@ ApplicationWindow {
                 }
             }
         }
+    }
+
+    FolderDialog {
+        id: exportFolderDialog
+        currentFolder: StandardPaths.writableLocation(StandardPaths.DocumentsLocation)
+        onAccepted: {
+            let path = listModel.toLocalFile(selectedFolder)
+            let res = listModel.exportTo(path)
+            if (res) {
+                console.log("Export Succeded")
+                listModel.goRefresh()
+            } else
+                console.log("Export Failed")
+        }
+        modality: Qt.ApplicationModal
+        options: FolderDialog.ShowDirsOnly
     }
 }

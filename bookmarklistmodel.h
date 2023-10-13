@@ -56,6 +56,7 @@ public slots:
 
     bool importFrom(QString const& from, QString const& path);
     bool vacuum();
+    bool exportTo(QString const& path);
 
 
     void goInto(QString const& parent);
@@ -79,8 +80,10 @@ public slots:
     QString getDatabasePath();
 //    bool setDatabaseDirectory(QString const& path);
 
-    void reopenDatabase(QString const& path);
+//    void reopenDatabase(QString const& path);
     void reopenDatabase();
+    QSqlDatabase getDatabase();
+//    void closeDatabase();
 signals:
     void selectionsSizeChanged();
     void cutSizeChanged();
@@ -88,7 +91,8 @@ signals:
 private:
     QList<Bookmark*> mData;
 //    mm::bookmarks::manager mManager {};
-    QSqlDatabase mDb;
+//    QSqlDatabase mDb;
+//    QString dbName = "mmBookmarks";
 
 //    QList<QString> mParentsHistory;
     QString mCurrentContainer = "";
@@ -96,9 +100,9 @@ private:
     QItemSelectionModel mSelModel;
     QList<QVariantMap> mCutModel;
 
-    QString settingsOrg = "mm.bookmarks.manager";
-    QString settingsApp = "BookmarksManager";
-    QString settingsDir = "directory";
+//    QString settingsOrg = "mm.bookmarks.manager";
+//    QString settingsApp = "BookmarksManager";
+//    QString settingsDir = "directory";
 
 private:
     void convert(QObject* parent, QList<Bookmark*>& result, QList<QVariantMap> const& other) const;
