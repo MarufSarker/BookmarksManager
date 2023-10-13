@@ -108,6 +108,11 @@ ApplicationWindow {
                     }
                     MenuSeparator {}
                     MenuItem {
+                        text: qsTr("Settings")
+                        onClicked: { stack.push(componentSettings) }
+                    }
+                    MenuSeparator {}
+                    MenuItem {
                         text: qsTr("Exit")
                         onClicked: { Qt.quit() }
                     }
@@ -691,7 +696,7 @@ ApplicationWindow {
                         Layout.rightMargin: 2
                         horizontalAlignment: Qt.AlignHCenter
                         verticalAlignment: Qt.AlignVCenter
-                        wrapMode: Qt.TextWrapAnywhere
+                        wrapMode: Label.WrapAnywhere
                     }
                     FileDialog {
                         id: importFileDialog
@@ -738,6 +743,90 @@ ApplicationWindow {
                 wrapMode: Text.WrapAnywhere
                 color: "#FFFFFF"
                 text: "Clean database from leftover entries."
+            }
+        }
+    }
+
+    Component {
+        id: componentSettings
+        ScrollView {
+            property var _parent: parent
+            contentHeight: cld.height //children[0].children[0].children[0].height
+            contentWidth: _parent ? _parent.width : 0
+            ColumnLayout {
+                id: cld
+                width: _parent ? _parent.width : 0
+                RowLayout {
+                    width: parent.width
+                    Button {
+                        id: settingsOk
+                        text: qsTr("Save")
+                        Layout.fillWidth: true
+                        Layout.margins: 5
+                        onClicked: {
+                            settingsInfo.text = ""
+                        }
+                    }
+                    Button {
+                        id: settingsCancel
+                        text: qsTr("Close")
+                        Layout.fillWidth: true
+                        Layout.margins: 5
+                        onClicked: stack.pop()
+                    }
+                }
+                Text {
+                    id: settingsInfo
+                    width: parent.width
+                    text: ""
+                    color: "#FFFFFF"
+                    font.bold: true
+                    Layout.margins: 5
+                    Layout.preferredWidth: parent.width - (2 * Layout.margins)
+                    horizontalAlignment: Qt.AlignHCenter
+                    verticalAlignment: Qt.AlignVCenter
+                    wrapMode: Text.WrapAnywhere
+                }
+                RowLayout {
+                    width: parent.width
+                    Label {
+                        text: "Database Directory"
+                        color: "#B0B0B0"
+                        font.italic: true
+                        Layout.fillWidth: false
+                        Layout.margins: 0
+                        Layout.leftMargin: 2
+                        Layout.rightMargin: 2
+                    }
+                    Label {
+                        id: settingsDbDir
+                        text: ""
+                        color: "#FFFFFF"
+                        font.italic: false
+                        Layout.fillWidth: true
+                        Layout.margins: 0
+                        Layout.leftMargin: 2
+                        Layout.rightMargin: 2
+                        horizontalAlignment: Qt.AlignHCenter
+                        verticalAlignment: Qt.AlignVCenter
+                        wrapMode: Label.WrapAnywhere
+                    }
+                    FolderDialog {
+                        id: settingsDbDirDialog
+                        currentFolder: StandardPaths.writableLocation(StandardPaths.DocumentsLocation)
+                        onAccepted: settingsDbDir.text = selectedFolder
+                        modality: Qt.ApplicationModal
+                        options: FolderDialog.ShowDirsOnly
+                    }
+                    Button {
+                        text: qsTr("...")
+                        onClicked: settingsDbDirDialog.open()
+                        Layout.fillWidth: false
+                        Layout.margins: 0
+                        Layout.leftMargin: 2
+                        Layout.rightMargin: 2
+                    }
+                }
             }
         }
     }
