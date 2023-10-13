@@ -523,11 +523,11 @@ VALUES
     '0',
     'CONTAINER',
     (
-        "Imported Bookmarks [mm_bookmarks] ["
+        'Imported Bookmarks [mm_bookmarks] ['
         ||
         (strftime('%Y-%m-%dT%H:%M:%S+00:00', 'now'))
         ||
-        "]"
+        ']'
     ),
     '-1'
 );
@@ -924,11 +924,11 @@ VALUES
         '0',
         'CONTAINER',
         (
-            "Imported Bookmarks [FireFox] ["
+            'Imported Bookmarks [FireFox] ['
             ||
             (strftime('%Y-%m-%dT%H:%M:%S+00:00', 'now'))
             ||
-            "]"
+            ']'
         ),
         0
     );
