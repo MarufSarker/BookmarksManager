@@ -2,6 +2,8 @@
 #include "sql.hh"
 #include <QtSql>
 #include <QTime>
+#include <QSettings>
+#include <QFileInfo>
 
 BookmarkListModel::BookmarkListModel(QObject *parent)
     : QAbstractListModel{parent}, mSelModel{this}
@@ -9,9 +11,64 @@ BookmarkListModel::BookmarkListModel(QObject *parent)
     // mManager.open("./");
 //    mManager.open("/home/cube/Downloads/qt-projects/BookmarksManager/", "mm_bookmarks.db");
 
-    QString dbPath ("/home/cube/Downloads/qt-projects/BookmarksManager/mm_bookmarks.db");
+    reopenDatabase();
+
+//    QString dbDir = getDatabaseDirectory();
+//    if (dbDir.isEmpty())
+//        return;
+//    QString dbPath = dbDir + "mm_bookmarks.db";
+//    reopenDatabase(dbPath);
+
+////    QString dbPath ("/home/cube/Downloads/qt-projects/BookmarksManager/mm_bookmarks.db");
+//    mDb = QSqlDatabase::addDatabase("QSQLITE");
+//    mDb.setDatabaseName(dbPath);
+//    if (!mDb.open())
+//    {
+//        qDebug() << mDb.lastError();
+//        return;
+//    }
+//    // prepare
+//    QSqlQuery query(mDb);
+//    try
+//    {
+//        for (auto const& v : mm::bookmarks::sql::versions::create)
+//        {
+//            query.prepare(QString::fromStdString(v));
+//            query.exec();
+//            query.finish();
+//        }
+//        for (auto const& v : mm::bookmarks::sql::bookmarks::create)
+//        {
+//            query.prepare(QString::fromStdString(v));
+//            query.exec();
+//            query.finish();
+//        }
+//    }
+//    catch (std::runtime_error const& e)
+//    {
+//        qDebug() << e.what();
+//        mDb.close();
+//    }
+}
+
+void BookmarkListModel::reopenDatabase()
+{
+//    QString dbDir = getDatabaseDirectory();
+//    if (dbDir.isEmpty())
+//        return;
+//    QString dbPath = dbDir + "/mm_bookmarks.db";
+//    reopenDatabase(dbPath);
+    reopenDatabase(getDatabasePath());
+}
+
+void BookmarkListModel::reopenDatabase(QString const& path)
+{
+    qDebug() << "Opening Database:" << path;
+    if (mDb.isOpen())
+        mDb.close();
+    //    QString dbPath ("/home/cube/Downloads/qt-projects/BookmarksManager/mm_bookmarks.db");
     mDb = QSqlDatabase::addDatabase("QSQLITE");
-    mDb.setDatabaseName(dbPath);
+    mDb.setDatabaseName(path);
     if (!mDb.open())
     {
         qDebug() << mDb.lastError();
@@ -559,14 +616,14 @@ bool BookmarkListModel::importFrom(QString const& from, QString const& path)
             QSqlQuery query(db);
             query.prepare(v);
             if (!query.exec())
-                qDebug() << query.lastError();
+                qDebug() << query.lastError() << query.executedQuery();
             query.finish();
         }
         // detach
         QSqlQuery query(db);
         query.prepare(dt);
         if (!query.exec())
-            qDebug() << query.lastError();
+            qDebug() << query.lastError() << query.executedQuery();
         query.finish();
     };
 
@@ -575,14 +632,15 @@ bool BookmarkListModel::importFrom(QString const& from, QString const& path)
     {
         // prepare
         QString _att = att.arg(path_);
-        _att.replace("'", "\\'");
-        _att.replace("\"", "\\\"");
-        _att.replace(";", "\\;");
+//        _att.replace("'", "\\'");
+//        _att.replace("\"", "\\\"");
+//        _att.replace(";", "\\;");
 
         QSqlQuery query(db);
         query.prepare(_att);
         if (!query.exec())
-            qDebug() << query.lastError();
+            qDebug() << query.lastError() << query.executedQuery();
+        qDebug() << query.lastError() << query.executedQuery();
         query.finish();
 
         for (auto const& v : prep)
@@ -590,7 +648,8 @@ bool BookmarkListModel::importFrom(QString const& from, QString const& path)
             QSqlQuery query(db);
             query.prepare(v);
             if (!query.exec())
-                qDebug() << query.lastError();
+                qDebug() << query.lastError() << query.executedQuery();
+            qDebug() << query.lastError() << query.executedQuery();
             query.finish();
         }
 
@@ -600,7 +659,8 @@ bool BookmarkListModel::importFrom(QString const& from, QString const& path)
             QSqlQuery query(db);
             query.prepare(v);
             if (!query.exec())
-                qDebug() << query.lastError();
+                qDebug() << query.lastError() << query.executedQuery();
+            qDebug() << query.lastError() << query.executedQuery();
             query.finish();
         }
     };
@@ -818,4 +878,47 @@ QVariantMap BookmarkListModel::getTypesCount()
     res["URL"] = _queryDb(query);
 
     return res;
+}
+
+QString BookmarkListModel::getDatabasePath()
+{
+    QString path = QStandardPaths::writableLocation(QStandardPaths::DocumentsLocation) + "/mm_bookmarks.db";
+    qDebug() << "Database:" << path;
+    return path;
+//    QSettings set(settingsOrg, settingsApp);
+//    qDebug() << "Settings File:" << set.fileName();
+//    QVariant val = set.value(settingsDir, QVariant{});
+//    if (val.isNull() || !val.isValid())
+//    {
+//        qDebug() << "Database Directory: <invalid>";
+//        return QString();
+//    }
+//    QString path = val.toString();
+//    if (path.isEmpty())
+//    {
+//        qDebug() << "Database Directory: <empty>";
+//        return QString();
+//    }
+//    qDebug() << "Database Directory:" << path;
+//    return path;
+}
+
+//bool BookmarkListModel::setDatabaseDirectory(QString const& path)
+//{
+//    if (path.isEmpty())
+//    {
+//        qDebug() << "Database Directory Set: <empty>" << path;
+//        return false;
+//    }
+//    QSettings set(settingsOrg, settingsApp);
+//    qDebug() << "Settings File:" << set.fileName();
+//    set.setValue(settingsDir, path);
+//    set.sync();
+//    qDebug() << "Database Directory Set:" << path;
+//    return true;
+//}
+
+QString BookmarkListModel::toLocalFile(QString const& path) const
+{
+    return QUrl(path).toLocalFile();
 }

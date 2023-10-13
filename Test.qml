@@ -23,6 +23,11 @@ ApplicationWindow {
         id: stack
         anchors.fill: parent
         initialItem: componentBookmarksList
+//        Component.onCompleted: {
+//            let dir = listModel.getDatabasePath()
+//            if (!dir || dir === "")
+//                stack.push(componentSettings)
+//        }
     }
 
     header: ToolBar {
@@ -102,6 +107,11 @@ ApplicationWindow {
                         text: qsTr("Import")
                         onClicked: { stack.push(componentImportBookmarks) }
                     }
+                    MenuItem {
+                        text: qsTr("Export")
+                        onClicked: {}
+                    }
+                    MenuSeparator {}
                     MenuItem {
                         text: qsTr("Vacuum")
                         onClicked: { componentVacuumDatabase.createObject(mainWindow).open() }
@@ -595,7 +605,7 @@ ApplicationWindow {
                         onClicked: {
                             importInfo.text = ""
                             let t = importViewType.currentValue
-                            let f = importFileDialog.selectedFile.toString()
+                            let f = importFile.text
                             if (t.length <= 0 || f.length <= 0)
                             {
                                 importInfo.text = "Please Select Type and File"
@@ -701,7 +711,7 @@ ApplicationWindow {
                     FileDialog {
                         id: importFileDialog
                         currentFolder: StandardPaths.writableLocation(StandardPaths.DocumentsLocation)
-                        onAccepted: importFile.text = selectedFile
+                        onAccepted: importFile.text = listModel.toLocalFile(selectedFile)
                         modality: Qt.ApplicationModal
                         fileMode: FileDialog.OpenFile
                         options: FileDialog.ReadOnly
@@ -751,6 +761,7 @@ ApplicationWindow {
         id: componentSettings
         ScrollView {
             property var _parent: parent
+            property string _cfgDir: ""
             contentHeight: cld.height //children[0].children[0].children[0].height
             contentWidth: _parent ? _parent.width : 0
             ColumnLayout {
@@ -763,9 +774,22 @@ ApplicationWindow {
                         text: qsTr("Save")
                         Layout.fillWidth: true
                         Layout.margins: 5
-                        onClicked: {
-                            settingsInfo.text = ""
-                        }
+                        enabled: false
+//                        onClicked: {
+//                            settingsInfo.text = ""
+//                            let txt = settingsDbDir.text
+//                            if (!txt || txt === "") {
+//                                settingsInfo.text = "Invalid Settings"
+//                                return
+//                            }
+//                            let res = listModel.setDatabaseDirectory(txt)
+//                            if (res) {
+//                                settingsInfo.text = "Settings Updated"
+//                                listModel.reopenDatabase()
+//                                return
+//                            } else
+//                                settingsInfo.text = "Failed To Update Settings"
+//                        }
                     }
                     Button {
                         id: settingsCancel
@@ -775,22 +799,22 @@ ApplicationWindow {
                         onClicked: stack.pop()
                     }
                 }
-                Text {
-                    id: settingsInfo
-                    width: parent.width
-                    text: ""
-                    color: "#FFFFFF"
-                    font.bold: true
-                    Layout.margins: 5
-                    Layout.preferredWidth: parent.width - (2 * Layout.margins)
-                    horizontalAlignment: Qt.AlignHCenter
-                    verticalAlignment: Qt.AlignVCenter
-                    wrapMode: Text.WrapAnywhere
-                }
+//                Text {
+//                    id: settingsInfo
+//                    width: parent.width
+//                    text: ""
+//                    color: "#FFFFFF"
+//                    font.bold: true
+//                    Layout.margins: 5
+//                    Layout.preferredWidth: parent.width - (2 * Layout.margins)
+//                    horizontalAlignment: Qt.AlignHCenter
+//                    verticalAlignment: Qt.AlignVCenter
+//                    wrapMode: Text.WrapAnywhere
+//                }
                 RowLayout {
                     width: parent.width
                     Label {
-                        text: "Database Directory"
+                        text: "Database"
                         color: "#B0B0B0"
                         font.italic: true
                         Layout.fillWidth: false
@@ -800,7 +824,7 @@ ApplicationWindow {
                     }
                     Label {
                         id: settingsDbDir
-                        text: ""
+                        text: listModel.getDatabasePath()
                         color: "#FFFFFF"
                         font.italic: false
                         Layout.fillWidth: true
@@ -810,22 +834,28 @@ ApplicationWindow {
                         horizontalAlignment: Qt.AlignHCenter
                         verticalAlignment: Qt.AlignVCenter
                         wrapMode: Label.WrapAnywhere
+//                        onTextChanged: {
+//                            if (settingsDbDir.text !== _cfgDir)
+//                                settingsOk.enabled = true
+//                            let t = settingsDbDir.text
+//                            console.log(t, Object.getOwnPropertyNames(settingsDbDirDialog.selectedFolder))
+//                        }
                     }
-                    FolderDialog {
-                        id: settingsDbDirDialog
-                        currentFolder: StandardPaths.writableLocation(StandardPaths.DocumentsLocation)
-                        onAccepted: settingsDbDir.text = selectedFolder
-                        modality: Qt.ApplicationModal
-                        options: FolderDialog.ShowDirsOnly
-                    }
-                    Button {
-                        text: qsTr("...")
-                        onClicked: settingsDbDirDialog.open()
-                        Layout.fillWidth: false
-                        Layout.margins: 0
-                        Layout.leftMargin: 2
-                        Layout.rightMargin: 2
-                    }
+//                    FolderDialog {
+//                        id: settingsDbDirDialog
+//                        currentFolder: StandardPaths.writableLocation(StandardPaths.DocumentsLocation)
+//                        onAccepted: settingsDbDir.text = selectedFolder
+//                        modality: Qt.ApplicationModal
+//                        options: FolderDialog.ShowDirsOnly
+//                    }
+//                    Button {
+//                        text: qsTr("...")
+//                        onClicked: settingsDbDirDialog.open()
+//                        Layout.fillWidth: false
+//                        Layout.margins: 0
+//                        Layout.leftMargin: 2
+//                        Layout.rightMargin: 2
+//                    }
                 }
             }
         }

@@ -33,6 +33,8 @@ public:
 //    Q_INVOKABLE QVariantMap getMap(int const& index) const;
 //    Q_INVOKABLE QList<QVariantMap> selectGetSelections() const;
 
+    Q_INVOKABLE QString toLocalFile(QString const& path) const;
+
 protected:
     QHash<int, QByteArray> roleNames() const override;
 
@@ -74,6 +76,11 @@ public slots:
 
     QVariantMap getTypesCount();
 
+    QString getDatabasePath();
+//    bool setDatabaseDirectory(QString const& path);
+
+    void reopenDatabase(QString const& path);
+    void reopenDatabase();
 signals:
     void selectionsSizeChanged();
     void cutSizeChanged();
@@ -88,6 +95,10 @@ private:
 
     QItemSelectionModel mSelModel;
     QList<QVariantMap> mCutModel;
+
+    QString settingsOrg = "mm.bookmarks.manager";
+    QString settingsApp = "BookmarksManager";
+    QString settingsDir = "directory";
 
 private:
     void convert(QObject* parent, QList<Bookmark*>& result, QList<QVariantMap> const& other) const;
