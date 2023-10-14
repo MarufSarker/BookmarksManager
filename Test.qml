@@ -4,7 +4,6 @@ import QtQuick.Controls
 import QtQuick.Layouts
 import QtQuick.Dialogs
 import QtCore
-// import QtQuick.Controls.Material
 import QtQuick.Controls.Universal
 
 
@@ -14,11 +13,9 @@ ApplicationWindow {
     height: 480
     visible: true
     title: qsTr("Bookmarks Manager")
-    minimumHeight: 50
-    minimumWidth: 50
+    minimumHeight: 300
+    minimumWidth: 300
 
-//    Material.theme: Material.Dark
-//    Material.accent: Material.LightBlue
     Universal.theme: Universal.Dark
     Universal.accent: Universal.Cyan
 
@@ -30,11 +27,6 @@ ApplicationWindow {
         id: stack
         anchors.fill: parent
         initialItem: componentBookmarksList
-//        Component.onCompleted: {
-//            let dir = listModel.getDatabasePath()
-//            if (!dir || dir === "")
-//                stack.push(componentSettings)
-//        }
     }
 
     header: ToolBar {
@@ -46,7 +38,7 @@ ApplicationWindow {
                 font.bold: true
                 Layout.fillWidth: true
                 Layout.alignment: Qt.AlignLeft
-                Layout.margins: 5
+                Layout.leftMargin: 5
                 MouseArea {
                     anchors.fill: parent
                     onClicked: listModel.goHome()
