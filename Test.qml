@@ -4,6 +4,8 @@ import QtQuick.Controls
 import QtQuick.Layouts
 import QtQuick.Dialogs
 import QtCore
+// import QtQuick.Controls.Material
+import QtQuick.Controls.Universal
 
 
 ApplicationWindow {
@@ -14,6 +16,11 @@ ApplicationWindow {
     title: qsTr("Bookmarks Manager")
     minimumHeight: 50
     minimumWidth: 50
+
+//    Material.theme: Material.Dark
+//    Material.accent: Material.LightBlue
+    Universal.theme: Universal.Dark
+    Universal.accent: Universal.Cyan
 
     Component.onCompleted: {
         listModel.goHome()
@@ -155,9 +162,9 @@ ApplicationWindow {
                 id: searchField
                 focus: true
                 font.bold: true
-                color: "#FFFFFF"
+//                color: "#FFFFFF"
                 placeholderText: qsTr("Search...")
-                placeholderTextColor: "#FFFFFF"
+//                placeholderTextColor: "#FFFFFF"
                 Layout.alignment: Qt.AlignLeft
                 Layout.fillWidth: true
                 Layout.margins: 2
@@ -165,6 +172,7 @@ ApplicationWindow {
                 Layout.bottomMargin: 5
                 Keys.onReturnPressed: search.clicked()
                 Keys.onEnterPressed: search.clicked()
+//                Keys.onPressed: (event) => { console.log("************", event.key) }
             }
             Button {
                 id: search

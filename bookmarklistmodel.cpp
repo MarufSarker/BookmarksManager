@@ -5,8 +5,8 @@
 #include <QSettings>
 #include <QFileInfo>
 
-BookmarkListModel::BookmarkListModel(QObject *parent)
-    : QAbstractListModel{parent}, mSelModel{this}
+BookmarkListModel::BookmarkListModel(QObject *parent, QString const& conName)
+    : QAbstractListModel{parent}, mSelModel{this}, connectionName(conName)
 {
     // mManager.open("./");
 //    mManager.open("/home/cube/Downloads/qt-projects/BookmarksManager/", "mm_bookmarks.db");
@@ -53,7 +53,7 @@ BookmarkListModel::BookmarkListModel(QObject *parent)
 
 QSqlDatabase BookmarkListModel::getDatabase()
 {
-    auto db = QSqlDatabase::database(getDatabasePath());
+    auto db = QSqlDatabase::database(connectionName);
 //    qDebug() << db;
     return db;
 }
@@ -68,9 +68,10 @@ void BookmarkListModel::reopenDatabase()
 //    QString dbPath = dbDir + "/mm_bookmarks.db";
 //    reopenDatabase(dbPath);
 //    reopenDatabase(getDatabasePath());
+//    reopenDatabase(connectionName);
 //}
 
-//void BookmarkListModel::reopenDatabase(QString const& path)
+//void BookmarkListModel::reopenDatabase(QString const& conName)
 //{
     QString path = getDatabasePath();
 //    QSqlDatabase mDb = getDatabase();
@@ -82,9 +83,10 @@ void BookmarkListModel::reopenDatabase()
         QSqlDatabase::removeDatabase(path);
     }
     //    QString dbPath ("/home/cube/Downloads/qt-projects/BookmarksManager/mm_bookmarks.db");
-    QSqlDatabase mDb = QSqlDatabase::addDatabase("QSQLITE", path);
+    QSqlDatabase mDb = QSqlDatabase::addDatabase("QSQLITE", connectionName);
     mDb.setDatabaseName(path);
 //    qDebug() << __LINE__ << mDb << path;
+//    qDebug() << __LINE__ << QFileInfo(path).isWritable();
     if (!mDb.isValid() || !mDb.open())
     {
         qDebug() << mDb.lastError();

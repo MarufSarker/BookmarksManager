@@ -25,7 +25,7 @@ public:
         cutRole,
     };
 
-    explicit BookmarkListModel(QObject *parent = nullptr);
+    explicit BookmarkListModel(QObject *parent = nullptr, QString const& conName = "");
 
     int rowCount(QModelIndex const& parent) const override;
     QVariant data(QModelIndex const& index, int role = Qt::DisplayRole) const override;
@@ -80,7 +80,7 @@ public slots:
     QString getDatabasePath();
 //    bool setDatabaseDirectory(QString const& path);
 
-//    void reopenDatabase(QString const& path);
+//    void reopenDatabase(QString const& conName);
     void reopenDatabase();
     QSqlDatabase getDatabase();
 //    void closeDatabase();
@@ -99,6 +99,8 @@ private:
 
     QItemSelectionModel mSelModel;
     QList<QVariantMap> mCutModel;
+
+    QString connectionName = "";
 
 //    QString settingsOrg = "mm.bookmarks.manager";
 //    QString settingsApp = "BookmarksManager";

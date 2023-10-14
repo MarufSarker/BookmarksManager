@@ -10,17 +10,33 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
+import android.os.Environment;
+import android.os.Build;
+import android.content.Context;
+import android.Manifest;
+import androidx.core.content.ContextCompat;
+import android.content.pm.PackageManager;
+import android.content.Intent;
+import androidx.core.app.ActivityCompat;
+import android.provider.Settings;
 
 
 public class BookmarkAdd extends AppCompatActivity {
 
-    private EditText title = null;
-    private EditText url = null;
-    private Button add = null;
-    // private Button m_cancel_view = null;
-    // private TextView m_warning = null;
+    private EditText titleTxt = null;
+    private EditText urlTxt = null;
+    private Button addBtn = null;
+    private Button cancelBtn = null;
+    private TextView warning = null;
 
-    private static native int callNativeOne(int x);
+//    private static native int callNativeOne(int x);
+
+    private static native boolean callInsertBookmark(String title, String url);
+
+    private void _close()
+    {
+        this.finish();
+    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -28,22 +44,54 @@ public class BookmarkAdd extends AppCompatActivity {
         setContentView(R.layout.bookmark_add);
         setFinishOnTouchOutside(false);
 
-        title = (EditText) findViewById(R.id.titleXXX);
-        url = (EditText) findViewById(R.id.urlXXX);
-        add = (Button) findViewById(R.id.addXXX);
+        titleTxt = (EditText) findViewById(R.id.titleTxt);
+        urlTxt = (EditText) findViewById(R.id.urlTxt);
+        addBtn = (Button) findViewById(R.id.addBtn);
+        cancelBtn = (Button) findViewById(R.id.cancelBtn);
+        warning = (TextView) findViewById(R.id.warning);
 
-        add.setOnClickListener(new View.OnClickListener()
+        addBtn.setOnClickListener(new View.OnClickListener()
         {
             @Override
             public void onClick(View view)
             {
-                String txt = title.getText().toString();
+                String title = titleTxt.getText().toString();
+                String url = urlTxt.getText().toString();
+                if (url == null || url.length() <= 0)
+                {
+                    warning.setText("URL is required!");
+                    return;
+                }
+                if (title == null || title.length() <= 0)
+                {
+                    warning.setText("Title is required!");
+                    return;
+                }
+                boolean res = callInsertBookmark(title, url);
+                if (res != true)
+                {
+                    warning.setText("Failed to add bookmark!");
+                    return;
+                }
+                Toast.makeText(BookmarkAdd.this, "Bookmark Added", Toast.LENGTH_SHORT).show();
+                _close();
+
+//                String txt = title.getText().toString();
                 // call native method and expect return
                 // https://doc.qt.io/qt-6/qjniobject.html
                 // /opt/user/qt/source/qt-everywhere-src-6.5.1/qtdoc/examples/demos/hangman/purchasing/android/src/org/qtproject/qt/android/purchasing/InAppPurchase.java
                 // /opt/user/qt/source/qt-everywhere-src-6.5.1/qtdoc/examples/demos/hangman/purchasing/android/androidjni.cpp
-                int v = callNativeOne(32);
-                Toast.makeText(BookmarkAdd.this, String.valueOf(v), Toast.LENGTH_SHORT).show();
+//                int v = callNativeOne(32);
+//                Toast.makeText(BookmarkAdd.this, String.valueOf(v), Toast.LENGTH_SHORT).show();
+            }
+        });
+
+        cancelBtn.setOnClickListener(new View.OnClickListener()
+        {
+            @Override
+            public void onClick(View view)
+            {
+                _close();
             }
         });
 
@@ -51,11 +99,11 @@ public class BookmarkAdd extends AppCompatActivity {
 
         if (intent != null && Intent.ACTION_SEND.equals(intent.getAction()))
         {
-            String extra_text = intent.hasExtra(Intent.EXTRA_TEXT) ? intent.getStringExtra(Intent.EXTRA_TEXT) : null;
-            String extra_subject = intent.hasExtra(Intent.EXTRA_SUBJECT) ? intent.getStringExtra(Intent.EXTRA_SUBJECT) : null;
+            String text = intent.hasExtra(Intent.EXTRA_TEXT) ? intent.getStringExtra(Intent.EXTRA_TEXT) : null;
+            String subject = intent.hasExtra(Intent.EXTRA_SUBJECT) ? intent.getStringExtra(Intent.EXTRA_SUBJECT) : null;
 
-            title.setText(extra_subject);
-            url.setText(extra_text);
+            titleTxt.setText(subject);
+            urlTxt.setText(text);
         }
 
         // _setup_views();
