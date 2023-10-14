@@ -275,6 +275,21 @@ ApplicationWindow {
                             text: qsTr("Edit")
                             onClicked: stack.push(componentEditBookmark, {"editingModel": model})
                         }
+                        MenuItem {
+                            text: {
+                                if (model.type === "URL")
+                                    return qsTr("Copy URL")
+                                else if (model.type === "CONTAINER")
+                                    return qsTr("Copy Title")
+//                                qsTr("Copy")
+                            }
+                            onClicked: {
+                                if (model.type === "URL")
+                                    listModel.copyToClipboard(model.url)
+                                else if (model.type === "CONTAINER")
+                                    listModel.copyToClipboard(model.title)
+                            }
+                        }
                     }
                 }
             }

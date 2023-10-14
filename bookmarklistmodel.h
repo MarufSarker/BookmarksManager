@@ -35,6 +35,8 @@ public:
 
     Q_INVOKABLE QString toLocalFile(QString const& path) const;
 
+    Q_INVOKABLE void copyToClipboard(QString const& text) const;
+
 protected:
     QHash<int, QByteArray> roleNames() const override;
 

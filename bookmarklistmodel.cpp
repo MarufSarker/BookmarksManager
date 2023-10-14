@@ -4,6 +4,8 @@
 #include <QTime>
 #include <QSettings>
 #include <QFileInfo>
+#include <QClipboard>
+#include <QGuiApplication>
 
 BookmarkListModel::BookmarkListModel(QObject *parent, QString const& conName)
     : QAbstractListModel{parent}, mSelModel{this}, connectionName(conName)
@@ -992,4 +994,10 @@ bool BookmarkListModel::exportTo(QString const& path)
     qDebug() << "Exported:" << res;
     reopenDatabase();
     return res;
+}
+
+void BookmarkListModel::copyToClipboard(QString const& text) const
+{
+    QClipboard *clipboard = QGuiApplication::clipboard();
+    clipboard->setText(text);
 }
