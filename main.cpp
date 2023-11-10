@@ -152,7 +152,7 @@ int main(int argc, char *argv[])
         {"callInsertBookmark", "(Ljava/lang/String;Ljava/lang/String;)Z", reinterpret_cast<void *>(jniInsertBookmark)}
     };
     QJniEnvironment env;
-    env.registerNativeMethods("org/qtproject/example/BookmarkAdd", methods, sizeof(methods) / sizeof(methods[0]));
+    env.registerNativeMethods("mm/android/bookmarksmanager/BookmarkAdd", methods, sizeof(methods) / sizeof(methods[0]));
 
 //    bool permGranted = QJniObject::callStaticMethod<jboolean>(
 //        "org/qtproject/example/BookmarkAdd",

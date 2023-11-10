@@ -1,114 +1,318 @@
 package mm.android.bookmarksmanager;
 
-import androidx.appcompat.app.AppCompatActivity;
+// import android.Manifest;
+// import android.content.Context;
+// import android.content.Intent;
+// import android.content.pm.PackageManager;
+// import android.os.Build;
+// import android.os.Environment;
+// import android.provider.Settings;
+// import android.view.View;
+// import android.widget.Button;
+// import android.widget.EditText;
+// import android.widget.ListView;
+// import android.widget.TextView;
+// import androidx.appcompat.app.AppCompatActivity;
+// import androidx.core.app.ActivityCompat;
+// import androidx.core.content.ContextCompat;
+// import java.lang.Runnable;
+// import java.util.ArrayList;
 
-// import android.app.Activity;
+import android.app.Activity;
 import android.content.Intent;
 import android.os.Bundle;
-import android.view.View;
-import android.widget.Button;
-import android.widget.EditText;
-import android.widget.TextView;
+import android.os.Handler;
+import android.util.Log;
 import android.widget.Toast;
-import android.os.Environment;
-import android.os.Build;
-import android.content.Context;
-import android.Manifest;
-import androidx.core.content.ContextCompat;
-import android.content.pm.PackageManager;
-import android.content.Intent;
-import androidx.core.app.ActivityCompat;
-import android.provider.Settings;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 
+public class BookmarkAdd extends Activity {
 
-public class BookmarkAdd extends AppCompatActivity {
-
-    private EditText titleTxt = null;
-    private EditText urlTxt = null;
-    private Button addBtn = null;
-    private Button cancelBtn = null;
-    private TextView warning = null;
+    // private EditText titleTxt = null;
+    // private EditText urlTxt = null;
+    // private Button addBtn = null;
+    // private Button cancelBtn = null;
+    // private TextView warning = null;
+    // private DataAdapter adapter = null;
+    // private ListView listView = null;
 
 //    private static native int callNativeOne(int x);
 
     private static native boolean callInsertBookmark(String title, String url);
 
-    private void _close()
+    // private void _close()
+    // {
+    //     this.finish();
+    // }
+
+    private void logTxt(String string, boolean toast)
     {
-        this.finish();
+        Log.d("BookmarkAdd", string);
+        if (toast)
+            Toast.makeText(BookmarkAdd.this, string, Toast.LENGTH_LONG).show();
+    }
+
+    private void logTxt(String string)
+    {
+        logTxt(string, true);
     }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.bookmark_add);
-        setFinishOnTouchOutside(false);
-
-        titleTxt = (EditText) findViewById(R.id.titleTxt);
-        urlTxt = (EditText) findViewById(R.id.urlTxt);
-        addBtn = (Button) findViewById(R.id.addBtn);
-        cancelBtn = (Button) findViewById(R.id.cancelBtn);
-        warning = (TextView) findViewById(R.id.warning);
-
-        addBtn.setOnClickListener(new View.OnClickListener()
-        {
-            @Override
-            public void onClick(View view)
-            {
-                String title = titleTxt.getText().toString();
-                String url = urlTxt.getText().toString();
-                if (url == null || url.length() <= 0)
-                {
-                    warning.setText("URL is required!");
-                    return;
-                }
-                if (title == null || title.length() <= 0)
-                {
-                    warning.setText("Title is required!");
-                    return;
-                }
-                boolean res = callInsertBookmark(title, url);
-                if (res != true)
-                {
-                    warning.setText("Failed to add bookmark!");
-                    return;
-                }
-                Toast.makeText(BookmarkAdd.this, "Bookmark Added", Toast.LENGTH_SHORT).show();
-                _close();
-
-//                String txt = title.getText().toString();
-                // call native method and expect return
-                // https://doc.qt.io/qt-6/qjniobject.html
-                // /opt/user/qt/source/qt-everywhere-src-6.5.1/qtdoc/examples/demos/hangman/purchasing/android/src/org/qtproject/qt/android/purchasing/InAppPurchase.java
-                // /opt/user/qt/source/qt-everywhere-src-6.5.1/qtdoc/examples/demos/hangman/purchasing/android/androidjni.cpp
-//                int v = callNativeOne(32);
-//                Toast.makeText(BookmarkAdd.this, String.valueOf(v), Toast.LENGTH_SHORT).show();
-            }
-        });
-
-        cancelBtn.setOnClickListener(new View.OnClickListener()
-        {
-            @Override
-            public void onClick(View view)
-            {
-                _close();
-            }
-        });
+        //setContentView(R.layout.bookmark_add);
+        //setFinishOnTouchOutside(false);
 
         Intent intent = getIntent();
 
-        if (intent != null && Intent.ACTION_SEND.equals(intent.getAction()))
+        try
         {
-            String text = intent.hasExtra(Intent.EXTRA_TEXT) ? intent.getStringExtra(Intent.EXTRA_TEXT) : null;
-            String subject = intent.hasExtra(Intent.EXTRA_SUBJECT) ? intent.getStringExtra(Intent.EXTRA_SUBJECT) : null;
-
-            titleTxt.setText(subject);
-            urlTxt.setText(text);
+            processIntent(intent);
         }
+        catch (Exception e)
+        {
+            e.printStackTrace();
+            System.out.println(e);
+            logTxt(e.toString());
+        }
+
+        new Handler().postDelayed(new Runnable() {
+            @Override
+            public void run() {
+                BookmarkAdd.this.finish();
+            }
+        }, 2000);
+    }
+
+    private void processIntent(Intent intent)
+    {
+        if (intent == null || !Intent.ACTION_SEND.equals(intent.getAction()))
+        {
+            logTxt("Invalid Intent");
+            return;
+        }
+
+        String extraText = intent.hasExtra(Intent.EXTRA_TEXT) ?
+            intent.getStringExtra(Intent.EXTRA_TEXT) : null;
+        String extraSubject = intent.hasExtra(Intent.EXTRA_SUBJECT) ?
+            intent.getStringExtra(Intent.EXTRA_SUBJECT) : null;
+
+        if (extraText == null)
+        {
+            logTxt("Invalid URLs");
+            return;
+        }
+        if (extraSubject == null)
+        {
+            logTxt("Invalid Titles");
+            return;
+        }
+
+        logTxt("EXTRA_TEXT: " + extraText + " EXTRA_SUBJECT: " + extraSubject, false);
+
+        List<String> tmpUrls = new ArrayList<String>(
+                                Arrays.asList(extraText.split("\n")));
+        ArrayList<String> urls = new ArrayList<>();
+
+        for (String v : tmpUrls)
+        {
+            if (v == null)
+                continue;
+            String _v = v.strip();
+            if (_v.length() <= 0)
+                continue;
+            urls.add(_v);
+        }
+
+        if (urls.size() <= 0)
+        {
+            logTxt("No URL Found");
+            return;
+        }
+
+        List<String> titles = new ArrayList<String>(Arrays.asList(
+                            extraSubject.split(", ", urls.size())));
+
+        logTxt("Titles: " + String.valueOf(titles.size()) + " URLs: " + String.valueOf(urls.size()), false);
+
+        int added = 0;
+        int failed = 0;
+
+        for (int i = 0; i < urls.size(); ++i)
+        {
+            String url = urls.get(i);
+            String title = "";
+            if (i < titles.size())
+                title = titles.get(i);
+            boolean res = callInsertBookmark(title, url);
+            logTxt("TITLE: " + title + " URL: " + url + " ADDED: " + String.valueOf(res), false);
+            if (res)
+                added += 1;
+            else
+                failed += 1;
+        }
+
+        logTxt("ADDED: " + String.valueOf(added) + " FAILED: " + String.valueOf(failed));
+    }
+
+
+
+
+
+
+
+
+
+        // titleTxt = (EditText) findViewById(R.id.titleTxt);
+        // urlTxt = (EditText) findViewById(R.id.urlTxt);
+        // addBtn = (Button) findViewById(R.id.addBtn);
+        // cancelBtn = (Button) findViewById(R.id.cancelBtn);
+        // warning = (TextView) findViewById(R.id.warning);
+
+//         addBtn.setOnClickListener(new View.OnClickListener()
+//         {
+//             @Override
+//             public void onClick(View view)
+//             {
+//                 // int count = listView.getChildCount();
+//                 int count = adapter.getCount();
+//                 Log.d("BookmarkAdd", "Items Count: " + String.valueOf(count));
+//
+//                 for (int i = 0; i < count; ++i)
+//                 {
+//                     DataModel model = adapter.getElement(i);
+//
+//                     // View childView = listView.getChildAt(i);
+//                     // if (childView == null)
+//                         // continue;
+//                     // EditText titleView = (EditText) childView.findViewById(R.id.title);
+//                     // EditText urlView = (EditText) childView.findViewById(R.id.url);
+//                     // TextView warning = (TextView) childView.findViewById(R.id.warning);
+//                     // String title = titleView.getText().toString();
+//                     // String url = urlView.getText().toString();
+//                     String title = model.getTitle();
+//                     String url = model.getUrl();
+//
+//                     // String title = titleTxt.getText().toString();
+//                     // String url = urlTxt.getText().toString();
+//                     if (url == null || url.length() <= 0)
+//                     {
+//                         // warning.setText("URL is required!");
+//                         continue;
+//                         // return;
+//                     }
+//                     if (title == null || title.length() <= 0)
+//                     {
+//                         // warning.setText("Title is required!");
+//                         continue;
+//                         // return;
+//                     }
+//                     Log.d("BookmarkAdd", "Adding [URL]: " + url + " [TITLE]: " + title);
+//                     boolean res = callInsertBookmark(title, url);
+//                     if (res != true)
+//                     {
+//                         // warning.setText("Failed to add bookmark!");
+//                         continue;
+//                         // return;
+//                     }
+//                     Log.d("BookmarkAdd", "Added [URL]: " + url + " [TITLE]: " + title);
+//                     // warning.setText("Added Bookmark");
+//                     Toast.makeText(BookmarkAdd.this, "Bookmark Added: " + url, Toast.LENGTH_SHORT).show();
+//                     // _close();
+//                 }
+//
+//                 _close();
+//
+//
+// //                String txt = title.getText().toString();
+//                 // call native method and expect return
+//                 // https://doc.qt.io/qt-6/qjniobject.html
+//                 // /opt/user/qt/source/qt-everywhere-src-6.5.1/qtdoc/examples/demos/hangman/purchasing/android/src/org/qtproject/qt/android/purchasing/InAppPurchase.java
+//                 // /opt/user/qt/source/qt-everywhere-src-6.5.1/qtdoc/examples/demos/hangman/purchasing/android/androidjni.cpp
+// //                int v = callNativeOne(32);
+// //                Toast.makeText(BookmarkAdd.this, String.valueOf(v), Toast.LENGTH_SHORT).show();
+//             }
+//         });
+
+        // cancelBtn.setOnClickListener(new View.OnClickListener()
+        // {
+        //     @Override
+        //     public void onClick(View view)
+        //     {
+        //         _close();
+        //     }
+        // });
+
+        // Intent intent = getIntent();
+        //
+        // if (intent != null && Intent.ACTION_SEND.equals(intent.getAction()))
+        // {
+        //     String text = intent.hasExtra(Intent.EXTRA_TEXT) ? intent.getStringExtra(Intent.EXTRA_TEXT) : null;
+        //     String subject = intent.hasExtra(Intent.EXTRA_SUBJECT) ? intent.getStringExtra(Intent.EXTRA_SUBJECT) : null;
+        //
+        //     titleTxt.setText(subject);
+        //     urlTxt.setText(text);
+        // }
+
+        // adapter = new DataAdapter(getApplicationContext(),
+        //                             intentToList(getIntent()));
+        // listView = (ListView) findViewById(R.id.list);
+        // listView.setAdapter(adapter);
 
         // _setup_views();
         // _process_intent();
-    }
+    // }
+
+    // public List<DataModel> intentToList(Intent intent)
+    // {
+    //     ArrayList<DataModel> data = new ArrayList<>();
+    //
+    //     if (intent == null || !Intent.ACTION_SEND.equals(intent.getAction()))
+    //         return data;
+    //
+    //     String fullText = intent.hasExtra(Intent.EXTRA_TEXT) ?
+    //         intent.getStringExtra(Intent.EXTRA_TEXT) : null;
+    //     String fullSubject = intent.hasExtra(Intent.EXTRA_SUBJECT) ?
+    //         intent.getStringExtra(Intent.EXTRA_SUBJECT) : null;
+    //
+    //     Log.d("BookmarkAdd-intentToList", "Full [TEXT]: " + fullText + " [SUBJECT]: " + fullSubject);
+    //
+    //     List<String> urlsTmp = new ArrayList<String>(
+    //                             Arrays.asList(fullText.split("\n")));
+    //     ArrayList<String> urls = new ArrayList<>();
+    //
+    //     for (String e : urlsTmp)
+    //     {
+    //         if (e == null)
+    //             continue;
+    //         String _e = e.strip();
+    //         if (_e.length() <= 0)
+    //             continue;
+    //         urls.add(_e);
+    //     }
+    //
+    //     if (urls.size() <= 0)
+    //         return data;
+    //
+    //     List<String> titles = new ArrayList<String>(
+    //                         Arrays.asList(fullSubject.split(", ", urls.size())));
+    //
+    //     Log.d("BookmarkAdd-intentToList", "Titles: " + String.valueOf(titles.size()) + " Urls: " + String.valueOf(urls.size()));
+    //
+    //     for (int i = 0; i < urls.size(); ++i)
+    //     {
+    //         String u = urls.get(i);
+    //         String t = "";
+    //         if (i < titles.size())
+    //             t = titles.get(i);
+    //         Log.d("BookmarkAdd-intentToList", "Single [TITLE]: " + t + " [URL]: " + u);
+    //         data.add(new DataModel(t, u));
+    //     }
+    //
+    //     return data;
+    // }
 
     // private void _close()
     // {

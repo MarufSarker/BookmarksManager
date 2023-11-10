@@ -190,7 +190,7 @@ ApplicationWindow {
             implicitHeight: childrenRect ? childrenRect.height : 0
             color: {
                 if (model.selected)
-                    return "#1C1C1C";
+                    return "#3C3C3C";
                 else if (model.cut)
                     return "#555555"
                 return "transparent"

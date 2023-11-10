@@ -41,6 +41,11 @@
                 android:text="Cancel"
                 style="?android:attr/buttonBarButtonStyle"/>
         </LinearLayout>
+        <ListView
+            android:id="@+id/list"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content" />
+        <!--
         <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -81,5 +86,6 @@
             android:gravity="center"
             android:textColor="#FF0000"
             android:textAlignment="center"/>
+        -->
     </LinearLayout>
 </ScrollView>
