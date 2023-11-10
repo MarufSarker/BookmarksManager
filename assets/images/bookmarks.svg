@@ -1,0 +1,99 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Created with Inkscape (http://www.inkscape.org/) -->
+
+<svg
+   width="512"
+   height="512"
+   viewBox="0 0 512 512"
+   version="1.1"
+   id="svg1"
+   inkscape:version="1.3 (0e150ed6c4, 2023-07-21)"
+   sodipodi:docname="bookmarks.svg"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg"
+   xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+   xmlns:cc="http://creativecommons.org/ns#"
+   xmlns:dc="http://purl.org/dc/elements/1.1/">
+  <title
+     id="title1">Bookmarks</title>
+  <sodipodi:namedview
+     id="namedview1"
+     pagecolor="#ffffff"
+     bordercolor="#000000"
+     borderopacity="0.25"
+     inkscape:showpageshadow="2"
+     inkscape:pageopacity="0.0"
+     inkscape:pagecheckerboard="0"
+     inkscape:deskcolor="#d1d1d1"
+     inkscape:document-units="px"
+     inkscape:zoom="1.1020922"
+     inkscape:cx="258.59905"
+     inkscape:cy="238.63702"
+     inkscape:window-width="1920"
+     inkscape:window-height="1002"
+     inkscape:window-x="0"
+     inkscape:window-y="0"
+     inkscape:window-maximized="1"
+     inkscape:current-layer="layer1" />
+  <defs
+     id="defs1" />
+  <g
+     inkscape:label="Layer 1"
+     inkscape:groupmode="layer"
+     id="layer1">
+    <path
+       id="path1"
+       style="fill:#333333;stroke-width:6.5;stroke-linecap:round"
+       d="M 152,56 H 360 V 472 L 256.2652,368.00007 152,472 Z"
+       sodipodi:nodetypes="cccccc" />
+    <path
+       id="rect1"
+       style="stroke-width:6.5;stroke-linecap:round;fill:#ffd42a"
+       d="M 152,48 H 360 V 464 L 256.2652,360.00007 152,464 Z"
+       sodipodi:nodetypes="cccccc" />
+    <text
+       xml:space="preserve"
+       style="font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;font-size:61.5061px;font-family:'Noto Sans';-inkscape-font-specification:'Noto Sans Bold';fill:#ffffff;stroke-width:1.99279;stroke-linecap:round;stroke-dasharray:none"
+       x="221.81097"
+       y="256.1727"
+       id="text1"
+       transform="scale(0.91490246,1.0930127)"><tspan
+         sodipodi:role="line"
+         id="tspan1"
+         x="221.81097"
+         y="256.1727"
+         style="stroke-width:1.99279;fill:#ffffff">MM</tspan></text>
+  </g>
+  <metadata
+     id="metadata1">
+    <rdf:RDF>
+      <cc:Work
+         rdf:about="">
+        <dc:title>Bookmarks</dc:title>
+        <dc:creator>
+          <cc:Agent>
+            <dc:title>Maruf Sarker</dc:title>
+          </cc:Agent>
+        </dc:creator>
+        <dc:rights>
+          <cc:Agent>
+            <dc:title>Maruf Sarker</dc:title>
+          </cc:Agent>
+        </dc:rights>
+        <dc:publisher>
+          <cc:Agent>
+            <dc:title>Maruf Sarker</dc:title>
+          </cc:Agent>
+        </dc:publisher>
+        <dc:description>Bookmarks by Maruf Sarker</dc:description>
+        <dc:contributor>
+          <cc:Agent>
+            <dc:title>Maruf Sarker</dc:title>
+          </cc:Agent>
+        </dc:contributor>
+      </cc:Work>
+    </rdf:RDF>
+  </metadata>
+</svg>

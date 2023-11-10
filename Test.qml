@@ -211,14 +211,16 @@ ApplicationWindow {
                     Image {
                         source: {
                             if (model.type === "CONTAINER")
-                                return "qrc:/qt/qml/BookmarksManager/images/typeContainer.png"
+                                return "qrc:/assets/images/folder.svg"
                             else if (model.type === "URL")
-                                return "qrc:/qt/qml/BookmarksManager/images/typeURL.png"
+                                return "qrc:/assets/images/link.svg"
                             else
                                 return ""
                         }
                         anchors.fill: parent
                         anchors.margins: 3
+                        sourceSize.width: width
+                        sourceSize.height: height
                         fillMode: Image.PreserveAspectFit
                     }
                     MouseArea {

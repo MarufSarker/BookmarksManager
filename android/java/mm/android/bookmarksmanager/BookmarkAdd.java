@@ -1,4 +1,4 @@
-package org.qtproject.example;
+package mm.android.bookmarksmanager;
 
 import androidx.appcompat.app.AppCompatActivity;
 

@@ -99,6 +99,13 @@ static jboolean jniInsertBookmark(JNIEnv *env, jobject thiz, jstring title, jstr
 
 int main(int argc, char *argv[])
 {
+    for (auto v : QList({":", "qrc:", "assets:"}))
+    {
+        QDirIterator it(v, QDirIterator::Subdirectories);
+        while (it.hasNext())
+            qDebug() << it.next();
+    }
+
 //    QDirIterator it(":", QDirIterator::Subdirectories);
 //    while (it.hasNext())
 //        qDebug() << it.next();
