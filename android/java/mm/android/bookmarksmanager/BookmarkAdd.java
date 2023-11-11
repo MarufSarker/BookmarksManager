@@ -63,7 +63,7 @@ public class BookmarkAdd extends Activity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         //setContentView(R.layout.bookmark_add);
-        setFinishOnTouchOutside(false);
+        //setFinishOnTouchOutside(false);
 
         Intent intent = getIntent();
 
