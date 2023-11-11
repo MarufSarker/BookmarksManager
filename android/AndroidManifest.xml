@@ -48,7 +48,7 @@
         <activity
             android:name=".BookmarkAdd"
             android:label="AddBookmark"
-            android:theme="@style/Theme.AppCompat.Dialog"
+            android:theme="@android:style/Theme.Translucent.NoTitleBar"
             android:configChanges="orientation|uiMode|screenLayout|screenSize|smallestScreenSize|layoutDirection|locale|fontScale|keyboard|keyboardHidden|navigation|mcc|mnc|density"
             android:launchMode="singleTop"
             android:screenOrientation="unspecified"
