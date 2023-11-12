@@ -441,7 +441,7 @@ ApplicationWindow {
                                 "title": addViewTitle.value,
                                 "note": addViewNote.value,
                                 "type": addViewType.currentValue,
-                                "container": listModel.currentContainer(),
+                                "container": listModel.getCurrentContainer(),
                             }
                             if (bm.type !== "URL" && bm.type !== "CONTAINER") {
                                 addInfo.text = "Select Type"

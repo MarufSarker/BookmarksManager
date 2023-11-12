@@ -8,7 +8,7 @@
 #include <QGuiApplication>
 
 BookmarkListModel::BookmarkListModel(QObject *parent, QString const& conName)
-    : QAbstractListModel{parent}, mSelModel{this}, connectionName(conName)
+    : QAbstractListModel{parent}, selectionModel{this}, connectionName(conName)
 {
     // mManager.open("./");
 //    mManager.open("/home/cube/Downloads/qt-projects/BookmarksManager/", "mm_bookmarks.db");
@@ -124,7 +124,7 @@ void BookmarkListModel::reopenDatabase()
 
 int BookmarkListModel::rowCount(QModelIndex const& parent) const
 {
-    return (parent.isValid()) ? 0 : mData.count();
+    return (parent.isValid()) ? 0 : dataList.count();
 }
 
 QVariant BookmarkListModel::data(QModelIndex const& index, int role) const
@@ -134,25 +134,25 @@ QVariant BookmarkListModel::data(QModelIndex const& index, int role) const
     switch (role)
     {
     case identifierRole:
-        return QVariant(mData.at(index.row())->identifier);
+        return QVariant(dataList.at(index.row())->identifier);
     case containerRole:
-        return QVariant(mData.at(index.row())->container);
+        return QVariant(dataList.at(index.row())->container);
     case typeRole:
-        return QVariant(mData.at(index.row())->type);
+        return QVariant(dataList.at(index.row())->type);
     case urlRole:
-        return QVariant(mData.at(index.row())->url);
+        return QVariant(dataList.at(index.row())->url);
     case titleRole:
-        return QVariant(mData.at(index.row())->title);
+        return QVariant(dataList.at(index.row())->title);
     case noteRole:
-        return QVariant(mData.at(index.row())->note);
+        return QVariant(dataList.at(index.row())->note);
     case createdRole:
-        return QVariant(mData.at(index.row())->created);
+        return QVariant(dataList.at(index.row())->created);
     case modifiedRole:
-        return QVariant(mData.at(index.row())->modified);
+        return QVariant(dataList.at(index.row())->modified);
     case selectedRole:
-        return QVariant(mData.at(index.row())->selected);
+        return QVariant(dataList.at(index.row())->selected);
     case cutRole:
-        return QVariant(mData.at(index.row())->cut);
+        return QVariant(dataList.at(index.row())->cut);
     default:
         return {};
     }
@@ -271,8 +271,8 @@ void queryDb(QObject* parent, QSqlQuery& query, QList<Bookmark*>& data, QList<QV
 
 void BookmarkListModel::selectIntoModel(QString const& _query)
 {
-    beginRemoveRows(QModelIndex(), 0, mData.size() - 1);
-    mData.clear();
+    beginRemoveRows(QModelIndex(), 0, dataList.size() - 1);
+    dataList.clear();
     endRemoveRows();
 
     auto mDb = getDatabase();
@@ -284,16 +284,16 @@ void BookmarkListModel::selectIntoModel(QString const& _query)
     query.prepare("SELECT * FROM mm_bookmarks WHERE [url] LIKE (:url) OR [title] LIKE (:title) ORDER BY [title]");
     query.bindValue(":url", "%" + _query + "%");
     query.bindValue(":title", "%" + _query + "%");
-    queryDb(this, query, mData);
+    queryDb(this, query, dataList);
 
-    beginInsertRows(QModelIndex(), 0, mData.size() - 1);
+    beginInsertRows(QModelIndex(), 0, dataList.size() - 1);
     endInsertRows();
 }
 
 void BookmarkListModel::selectFromContainerIntoModel(QString const& _query)
 {
-    beginRemoveRows(QModelIndex(), 0, mData.size() - 1);
-    mData.clear();
+    beginRemoveRows(QModelIndex(), 0, dataList.size() - 1);
+    dataList.clear();
     endRemoveRows();
 
     auto mDb = getDatabase();
@@ -301,7 +301,7 @@ void BookmarkListModel::selectFromContainerIntoModel(QString const& _query)
     if (_query.isEmpty() || !mDb.isOpen())
         return;
 
-    mCurrentContainer = _query;
+    currentContainer = _query;
 
     QSqlQuery query(mDb);
 
@@ -362,9 +362,9 @@ void BookmarkListModel::selectFromContainerIntoModel(QString const& _query)
     ) ORDER BY CASE WHEN [title] == '../' THEN 0 ELSE 1 END;
     )EOF");
     query.bindValue(":container", _query);
-    queryDb(this, query, mData, mCutModel);
+    queryDb(this, query, dataList, cutModel);
 
-    beginInsertRows(QModelIndex(), 0, mData.size() - 1);
+    beginInsertRows(QModelIndex(), 0, dataList.size() - 1);
     endInsertRows();
 
     clearSelections();
@@ -788,15 +788,15 @@ void BookmarkListModel::goHome()
 
 void BookmarkListModel::goRefresh()
 {
-    goInto(currentContainer());
+    goInto(getCurrentContainer());
 //    if (mParentsHistory.isEmpty())
 //        return;
 //    goInto(mParentsHistory.takeLast());
 }
 
-QString BookmarkListModel::currentContainer()
+QString BookmarkListModel::getCurrentContainer()
 {
-    return (mCurrentContainer.isEmpty() || mCurrentContainer == "") ? "0" : mCurrentContainer;
+    return (currentContainer.isEmpty() || currentContainer == "") ? "0" : currentContainer;
 //    if (mParentsHistory.isEmpty())
 //        return "";
 //    return mParentsHistory.last();
@@ -807,37 +807,37 @@ void BookmarkListModel::selectToggle(int const& _index)
     QModelIndex idx = index(_index, 0);
     if (!idx.isValid())
         return;
-    mSelModel.select(idx, QItemSelectionModel::Toggle);
-    mData.at(idx.row())->selected = mSelModel.isSelected(idx);
+    selectionModel.select(idx, QItemSelectionModel::Toggle);
+    dataList.at(idx.row())->selected = selectionModel.isSelected(idx);
     emit dataChanged(idx, idx);
     emit selectionsSizeChanged();
 }
 
 bool BookmarkListModel::selectSelected(int const& _index)
 {
-    return mSelModel.isSelected(index(_index, 0));
+    return selectionModel.isSelected(index(_index, 0));
 }
 
 bool BookmarkListModel::selectHasSelection()
 {
-    return mSelModel.hasSelection();
+    return selectionModel.hasSelection();
 }
 
 QList<QVariantMap> BookmarkListModel::selectGetSelections()
 {
     QList<QVariantMap> res;
-    for (auto v : mSelModel.selectedIndexes())
+    for (auto v : selectionModel.selectedIndexes())
     {
         if (!v.isValid())
             continue;
-        res.append(mData.at(v.row())->asVariantMap());
+        res.append(dataList.at(v.row())->asVariantMap());
     }
     return res;
 }
 
 void BookmarkListModel::clearSelections()
 {
-    for (auto v : mSelModel.selectedIndexes())
+    for (auto v : selectionModel.selectedIndexes())
     {
         selectToggle(v.row());
     }
@@ -845,14 +845,14 @@ void BookmarkListModel::clearSelections()
 
 void BookmarkListModel::cutSelections()
 {
-    mCutModel.clear();
+    cutModel.clear();
 
-    for (auto v : mSelModel.selectedIndexes())
+    for (auto v : selectionModel.selectedIndexes())
     {
         if (!v.isValid())
             continue;
-        mData.at(v.row())->cut = true;
-        mCutModel.append(mData.at(v.row())->asVariantMap());
+        dataList.at(v.row())->cut = true;
+        cutModel.append(dataList.at(v.row())->asVariantMap());
         emit dataChanged(v, v);
     }
 
@@ -863,29 +863,29 @@ void BookmarkListModel::cutSelections()
 
 bool BookmarkListModel::cutHasSelection()
 {
-    return mCutModel.size() > 0;
+    return cutModel.size() > 0;
 }
 
 bool BookmarkListModel::cutPaste()
 {
-    if (mCutModel.isEmpty())
+    if (cutModel.isEmpty())
         return false;
-    if (mCurrentContainer.isEmpty())
+    if (currentContainer.isEmpty())
         return false;
 
     QList<QVariantMap> bms;
 
-    for (auto v : mCutModel)
+    for (auto v : cutModel)
     {
         QVariantMap bm;
         bm["identifier"] = v["identifier"];
-        bm["container"] = mCurrentContainer;
+        bm["container"] = currentContainer;
         bms.append(bm);
     }
 
     bool res = updateBookmarks(bms);
 
-    mCutModel.clear();
+    cutModel.clear();
     emit cutSizeChanged();
 
     return res;

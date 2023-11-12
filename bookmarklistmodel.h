@@ -4,9 +4,8 @@
 #include <QAbstractListModel>
 #include <QItemSelectionModel>
 #include <QSqlDatabase>
-#include "bookmark.h"
 
-//#include <mm/bookmarks/bookmarks.hh>
+#include "bookmark.h"
 
 class BookmarkListModel : public QAbstractListModel
 {
@@ -30,9 +29,6 @@ public:
     int rowCount(QModelIndex const& parent) const override;
     QVariant data(QModelIndex const& index, int role = Qt::DisplayRole) const override;
 
-//    Q_INVOKABLE QVariantMap getMap(int const& index) const;
-//    Q_INVOKABLE QList<QVariantMap> selectGetSelections() const;
-
     Q_INVOKABLE QString toLocalFile(QString const& path) const;
 
     Q_INVOKABLE void copyToClipboard(QString const& text) const;
@@ -41,16 +37,8 @@ protected:
     QHash<int, QByteArray> roleNames() const override;
 
 public slots:
-    // mode: "container", "search"
-//    void search(QString const& query, QString const& mode, QString const& parent);
-
     void selectIntoModel(QString const& query);
     void selectFromContainerIntoModel(QString const& query);
-
-//    void test(QVariantList);
-//    void test(QVariantMap);
-//    void test(QList<QVariantMap>const&);
-//    void test(Bookmark);
 
     bool insertBookmarks(QList<QVariantMap> const& data);
     bool updateBookmarks(QList<QVariantMap> const& data);
@@ -60,13 +48,10 @@ public slots:
     bool vacuum();
     bool exportTo(QString const& path);
 
-
     void goInto(QString const& parent);
-//    void goBack();
-//    bool goBackable();
     void goHome();
     void goRefresh();
-    QString currentContainer();
+    QString getCurrentContainer();
 
     void selectToggle(int const& index);
     bool selectSelected(int const& index);
@@ -80,33 +65,20 @@ public slots:
     QVariantMap getTypesCount();
 
     QString getDatabasePath();
-//    bool setDatabaseDirectory(QString const& path);
 
-//    void reopenDatabase(QString const& conName);
     void reopenDatabase();
     QSqlDatabase getDatabase();
-//    void closeDatabase();
+
 signals:
     void selectionsSizeChanged();
     void cutSizeChanged();
 
 private:
-    QList<Bookmark*> mData;
-//    mm::bookmarks::manager mManager {};
-//    QSqlDatabase mDb;
-//    QString dbName = "mmBookmarks";
-
-//    QList<QString> mParentsHistory;
-    QString mCurrentContainer = "";
-
-    QItemSelectionModel mSelModel;
-    QList<QVariantMap> mCutModel;
-
+    QList<Bookmark*> dataList;
+    QString currentContainer = "";
+    QItemSelectionModel selectionModel;
+    QList<QVariantMap> cutModel;
     QString connectionName = "";
-
-//    QString settingsOrg = "mm.bookmarks.manager";
-//    QString settingsApp = "BookmarksManager";
-//    QString settingsDir = "directory";
 
 private:
     void convert(QObject* parent, QList<Bookmark*>& result, QList<QVariantMap> const& other) const;

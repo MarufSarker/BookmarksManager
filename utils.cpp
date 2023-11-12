@@ -72,7 +72,7 @@ jboolean jniInsertBookmark(JNIEnv *env, jobject thiz, jstring _title, jstring _u
     bm["url"] = url;
     bm["title"] = title;
     bm["type"] = "URL";
-    bm["container"] = model.currentContainer();
+    bm["container"] = model.getCurrentContainer();
 
     QList<QVariantMap> bms;
     bms.append(bm);
