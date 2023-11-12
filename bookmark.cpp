@@ -1,5 +1,4 @@
 #include "bookmark.h"
-#include <QVariantMap>
 
 Bookmark::Bookmark(QObject *parent)
     : QObject{parent}

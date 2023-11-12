@@ -1,12 +1,15 @@
-#include "utils.hh"
+#include "utils.h"
 
 #include <algorithm>
+
 #include <QString>
 #include <QCoreApplication>
+
 #ifdef __ANDROID__
 #include <jni.h>
 #include <QtCore/private/qandroidextras_p.h>
 #endif
+
 #include "bookmarklistmodel.h"
 
 bool checkAndroidPermissions()

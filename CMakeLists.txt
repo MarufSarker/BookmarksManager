@@ -19,7 +19,7 @@ qt_add_qml_module(BookmarksManager
     SOURCES bookmarklistmodel.h bookmarklistmodel.cpp
     SOURCES sql.hh
     SOURCES bookmark.h bookmark.cpp
-    SOURCES utils.hh utils.cc
+    SOURCES utils.h utils.cpp
     QML_FILES Test.qml
 )
 

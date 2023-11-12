@@ -5,7 +5,7 @@
 #include <QCommandLineParser>
 
 #include "bookmarklistmodel.h"
-#include "utils.hh"
+#include "utils.h"
 
 int main(int argc, char *argv[])
 {

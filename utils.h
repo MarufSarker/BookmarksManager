@@ -1,5 +1,5 @@
-#ifndef UTILS_HH
-#define UTILS_HH
+#ifndef UTILS_H
+#define UTILS_H
 
 #ifdef __ANDROID__
 #include <jni.h>
@@ -13,4 +13,4 @@ void registerJNIMethods();
 static jboolean jniInsertBookmark(JNIEnv *env, jobject thiz, jstring title, jstring url);
 #endif
 
-#endif // UTILS_HH
+#endif // UTILS_H
