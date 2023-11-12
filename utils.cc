@@ -1,5 +1,6 @@
 #include "utils.hh"
 
+#include <algorithm>
 #include <QString>
 #include <QCoreApplication>
 #ifdef __ANDROID__
@@ -11,18 +12,22 @@
 bool checkAndroidPermissions()
 {
 #ifdef __ANDROID__
-    QString perm = (QNativeInterface::QAndroidApplication::sdkVersion() >= 30)
-                       ? "android.settings.MANAGE_ALL_FILES_ACCESS_PERMISSION"
-                       : "android.permission.WRITE_EXTERNAL_STORAGE";
+    QList<QString> permissions ({
+        (QNativeInterface::QAndroidApplication::sdkVersion() >= 30)
+        ? "android.settings.MANAGE_ALL_FILES_ACCESS_PERMISSION"
+        : "android.permission.WRITE_EXTERNAL_STORAGE",
+    });
+    QList<bool> results;
 
-    auto res = QtAndroidPrivate::checkPermission(perm).result();
+    for (auto const& permission : permissions)
+    {
+        auto res = QtAndroidPrivate::checkPermission(permission).result();
+        bool authoried = (res == QtAndroidPrivate::Authorized);
+        results.append(authoried);
+        qDebug() << "ANDROID PERMISSION:" << permission << "AUTHORIZED:" << authoried;
+    }
 
-    if (res == QtAndroidPrivate::Authorized)
-        return true;
-
-    res = QtAndroidPrivate::requestPermission(perm).result();
-
-    return (res == QtAndroidPrivate::Authorized);
+    return std::all_of(results.constBegin(), results.constEnd(), [](bool v) { return v; });
 #else
     return false;
 #endif
