@@ -37,7 +37,7 @@ ApplicationWindow {
                 font.bold: true
                 Layout.fillWidth: true
                 Layout.alignment: Qt.AlignLeft
-                Layout.leftMargin: 5
+                Layout.leftMargin: 10
                 MouseArea {
                     anchors.fill: parent
                     onClicked: listModel.goHome()
