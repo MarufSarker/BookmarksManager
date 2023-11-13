@@ -26,6 +26,12 @@ bool checkAndroidPermissions()
     {
         auto res = QtAndroidPrivate::checkPermission(permission).result();
         bool authoried = (res == QtAndroidPrivate::Authorized);
+        if (authoried)
+        {
+            results.append(authoried);
+            continue;
+        }
+        authoried = QtAndroidPrivate::requestPermission(permission).result();
         results.append(authoried);
         qDebug() << "ANDROID PERMISSION:" << permission << "AUTHORIZED:" << authoried;
     }
