@@ -6,7 +6,6 @@ import QtQuick.Dialogs
 import QtCore
 import QtQuick.Controls.Universal
 
-
 ApplicationWindow {
     id: mainWindow
     width: 640
@@ -73,7 +72,9 @@ ApplicationWindow {
                         onClicked: listModel.cutSelections()
                         Connections {
                             target: listModel
-                            function onSelectionsSizeChanged() { toolbuttonCut.enabled = listModel.selectHasSelection() }
+                            function onSelectionsSizeChanged() {
+                                toolbuttonCut.enabled = listModel.selectHasSelection()
+                            }
                         }
                     }
                     MenuItem {
@@ -87,7 +88,9 @@ ApplicationWindow {
                         }
                         Connections {
                             target: listModel
-                            function onCutSizeChanged() { toolbuttonPaste.enabled = listModel.cutHasSelection() }
+                            function onCutSizeChanged() {
+                                toolbuttonPaste.enabled = listModel.cutHasSelection()
+                            }
                         }
                     }
                     MenuSeparator {}
@@ -98,7 +101,9 @@ ApplicationWindow {
                         onClicked: { componentDeleteBookmarks.createObject(mainWindow).open() }
                         Connections {
                             target: listModel
-                            function onSelectionsSizeChanged() { toolbuttonDelete.enabled = listModel.selectHasSelection() }
+                            function onSelectionsSizeChanged() {
+                                toolbuttonDelete.enabled = listModel.selectHasSelection()
+                            }
                         }
                     }
                     MenuSeparator {}
@@ -154,9 +159,7 @@ ApplicationWindow {
                 id: searchField
                 focus: true
                 font.bold: true
-//                color: "#FFFFFF"
                 placeholderText: qsTr("Search...")
-//                placeholderTextColor: "#FFFFFF"
                 Layout.alignment: Qt.AlignLeft
                 Layout.fillWidth: true
                 Layout.margins: 2
@@ -164,7 +167,6 @@ ApplicationWindow {
                 Layout.bottomMargin: 5
                 Keys.onReturnPressed: search.clicked()
                 Keys.onEnterPressed: search.clicked()
-//                Keys.onPressed: (event) => { console.log("************", event.key) }
             }
             Button {
                 id: search
@@ -283,7 +285,6 @@ ApplicationWindow {
                                     return qsTr("Copy URL")
                                 else if (model.type === "CONTAINER")
                                     return qsTr("Copy Title")
-//                                qsTr("Copy")
                             }
                             onClicked: {
                                 if (model.type === "URL")
@@ -794,21 +795,6 @@ ApplicationWindow {
                         Layout.fillWidth: true
                         Layout.margins: 5
                         enabled: false
-//                        onClicked: {
-//                            settingsInfo.text = ""
-//                            let txt = settingsDbDir.text
-//                            if (!txt || txt === "") {
-//                                settingsInfo.text = "Invalid Settings"
-//                                return
-//                            }
-//                            let res = listModel.setDatabaseDirectory(txt)
-//                            if (res) {
-//                                settingsInfo.text = "Settings Updated"
-//                                listModel.reopenDatabase()
-//                                return
-//                            } else
-//                                settingsInfo.text = "Failed To Update Settings"
-//                        }
                     }
                     Button {
                         id: settingsCancel
@@ -818,18 +804,6 @@ ApplicationWindow {
                         onClicked: stack.pop()
                     }
                 }
-//                Text {
-//                    id: settingsInfo
-//                    width: parent.width
-//                    text: ""
-//                    color: "#FFFFFF"
-//                    font.bold: true
-//                    Layout.margins: 5
-//                    Layout.preferredWidth: parent.width - (2 * Layout.margins)
-//                    horizontalAlignment: Qt.AlignHCenter
-//                    verticalAlignment: Qt.AlignVCenter
-//                    wrapMode: Text.WrapAnywhere
-//                }
                 RowLayout {
                     width: parent.width
                     Label {
@@ -853,28 +827,7 @@ ApplicationWindow {
                         horizontalAlignment: Qt.AlignHCenter
                         verticalAlignment: Qt.AlignVCenter
                         wrapMode: Label.WrapAnywhere
-//                        onTextChanged: {
-//                            if (settingsDbDir.text !== _cfgDir)
-//                                settingsOk.enabled = true
-//                            let t = settingsDbDir.text
-//                            console.log(t, Object.getOwnPropertyNames(settingsDbDirDialog.selectedFolder))
-//                        }
                     }
-//                    FolderDialog {
-//                        id: settingsDbDirDialog
-//                        currentFolder: StandardPaths.writableLocation(StandardPaths.DocumentsLocation)
-//                        onAccepted: settingsDbDir.text = selectedFolder
-//                        modality: Qt.ApplicationModal
-//                        options: FolderDialog.ShowDirsOnly
-//                    }
-//                    Button {
-//                        text: qsTr("...")
-//                        onClicked: settingsDbDirDialog.open()
-//                        Layout.fillWidth: false
-//                        Layout.margins: 0
-//                        Layout.leftMargin: 2
-//                        Layout.rightMargin: 2
-//                    }
                 }
             }
         }
